@@ -1,0 +1,4 @@
+{
+    "Default": "mongodb+srv://FaizanAli:12345678Za@sse.athgh.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+    "jwtSecret": "myTokenSecretKey"
+}

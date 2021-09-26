@@ -1,0 +1,18 @@
+import mongoose from "mongoose"
+
+const CallHistorySchema = new mongoose.Schema({
+    quantity: {
+        type: Number,
+        required: true,
+    },
+    user: {
+        type: mongoose.Types.ObjectId,
+        ref: 'User'
+    },
+    product: {
+        type: mongoose.Types.ObjectId,
+        ref: 'Product'
+    },
+})
+
+export const CallHistoryModel = mongoose.model('Cart', CallHistorySchema)
