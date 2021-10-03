@@ -46,7 +46,7 @@ app.use(express.json({ extended: false }))
 app.get('/', (req, res) => {
     var hostname = req.headers.host;
     res.writeHead(302, {
-        'Location': hostname + `/api-docs`
+        'Location': `/api-docs`
         //add other headers here...
     });
     res.end();
