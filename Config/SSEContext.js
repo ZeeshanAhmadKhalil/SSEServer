@@ -1,7 +1,7 @@
 import mongoose from "mongoose"
 import config from "config"
 
-const db = config.get("Default")
+// const db = config.get("Default")
 
 export const ConnectDB = async () => {
     try {
