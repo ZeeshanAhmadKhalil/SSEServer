@@ -1,14 +1,52 @@
 import express from 'express'
 import { check, body } from 'express-validator'
 
-import { AddProduct, DeleteProduct, EditProduct, GetProductById } from '../../Controller/ProductController.js'
+import { AddProduct, AddProductToCart, DeleteProduct, EditProduct, GetExchangeProducts, GetProductById, GetSellingProducts, LikeProduct } from '../../Controller/ProductController.js'
 import { UserAuth } from '../../Middleware/UserAuth.js'
 
 export const ProductRouter = express.Router()
 
-// * @route   POST Api/Product/AddProduct
-// * @desc    Add a Product
-// * @access  Protected
+/**
+ * @swagger
+ * /Api/Product/AddProduct:
+ *  post: 
+ *      summary: Add the product
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Product is successfully added
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      requestBody:
+ *          required: true
+ *          content: 
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          productName:
+ *                              type: string
+ *                          price:
+ *                              type: string
+ *                          forExchange:
+ *                              type: string
+ *                          description:
+ *                              type: string
+ *                          categoryId:
+ *                              type: string
+ *                          cityId:
+ *                              type: string
+ *                          conditionId:
+ *                              type: string
+ *                          images:
+ *                              type: array
+ *                              items:
+ *                                  type: string
+ */
 ProductRouter.post(
     '/AddProduct',
     [
@@ -32,17 +70,202 @@ ProductRouter.post(
     ],
     AddProduct
 )
-// * @route   POST Api/Product/GetProductById
-// * @desc    Get Product By Id
-// * @access  Protected
+/**
+ * @swagger
+ * /Api/Product/LikeProduct:
+ *  patch: 
+ *      summary: Like the product 
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Product is liked and added to wishlist
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      requestBody:
+ *          required: true
+ *          content: 
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          productId:
+ *                              type: string
+ */
+ProductRouter.patch(
+    '/LikeProduct',
+    [
+        UserAuth,
+        [
+            check('productId', 'Product id is required').not().isEmpty(),
+        ]
+    ],
+    LikeProduct
+)
+/**
+ * @swagger
+ * /Api/Product/AddProductToCart:
+ *  patch: 
+ *      summary: Like the product 
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Product is liked and added to wishlist
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      requestBody:
+ *          required: true
+ *          content: 
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          productId:
+ *                              type: string
+ */
+ProductRouter.patch(
+    '/AddProductToCart',
+    [
+        UserAuth,
+        [
+            check('productId', 'Product id is required').not().isEmpty(),
+        ]
+    ],
+    AddProductToCart
+)
+/**
+ * @swagger
+ * /Api/Product/GetProductById:
+ *  get: 
+ *      summary: Get product details
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Product details are successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      - in: query
+ *        name: productId
+ *        schema:
+ *          type: string
+ */
 ProductRouter.get(
     '/GetProductById',
     UserAuth,
     GetProductById
 )
-// * @route   POST Api/Product/EditProduct
-// * @desc    Edit a Product
-// * @access  Protected
+/**
+ * @swagger
+ * /Api/Product/GetSellingProducts:
+ *  get: 
+ *      summary: Get selling products 
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Selling products are successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      - in: query
+ *        name: limit
+ *        schema:
+ *          type: integer
+ *      - in: query
+ *        name: skip
+ *        schema:
+ *          type: integer
+ */
+ProductRouter.get(
+    '/GetSellingProducts',
+    UserAuth,
+    GetSellingProducts
+)
+/**
+ * @swagger
+ * /Api/Product/GetExchangeProducts:
+ *  get: 
+ *      summary: Get exchange products 
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Exchange products are successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      - in: query
+ *        name: limit
+ *        schema:
+ *          type: integer
+ *      - in: query
+ *        name: skip
+ *        schema:
+ *          type: integer
+ */
+ProductRouter.get(
+    '/GetExchangeProducts',
+    UserAuth,
+    GetExchangeProducts
+)
+/**
+ * @swagger
+ * /Api/Product/EditProduct:
+ *  put: 
+ *      summary: Edit the product
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Product is successfully edited
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      requestBody:
+ *          required: true
+ *          content: 
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          productId:
+ *                              type: string
+ *                          productName:
+ *                              type: string
+ *                          price:
+ *                              type: string
+ *                          forExchange:
+ *                              type: string
+ *                          description:
+ *                              type: string
+ *                          categoryId:
+ *                              type: string
+ *                          cityId:
+ *                              type: string
+ *                          conditionId:
+ *                              type: string
+ *                          images:
+ *                              type: array
+ *                              items:
+ *                                  type: string
+ */
 ProductRouter.put(
     '/EditProduct',
     [
@@ -67,9 +290,31 @@ ProductRouter.put(
     ],
     EditProduct
 )
-// * @route   POST Api/Product/DeleteProduct
-// * @desc    Edit a Product
-// * @access  Protected
+/**
+ * @swagger
+ * /Api/Product/DeleteProduct:
+ *  delete: 
+ *      summary: Delete the product 
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Product is successfully deleted
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      requestBody:
+ *          required: true
+ *          content: 
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          productId:
+ *                              type: string
+ */
 ProductRouter.delete(
     '/DeleteProduct',
     [

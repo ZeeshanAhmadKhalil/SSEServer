@@ -1,6 +1,6 @@
 import mongoose from "mongoose"
 
-const CallHistorySchema = new mongoose.Schema({
+const CartSchema = new mongoose.Schema({
     quantity: {
         type: Number,
         required: true,
@@ -15,4 +15,4 @@ const CallHistorySchema = new mongoose.Schema({
     },
 })
 
-export const CallHistoryModel = mongoose.model('Cart', CallHistorySchema)
+export const CartModel = mongoose.model('Cart', CartSchema)

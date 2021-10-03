@@ -20,15 +20,37 @@ export const AddProduct = async (req, res) => {
     }
 }
 export const GetProductById = async (req, res) => {
-    const errors = validationResult(req)
-    if (!errors.isEmpty())
-        return res.status(400).json({ errors: errors.array() })
-
     const { productId } = req.query
     const { id, fcmToken } = req.user
 
     try {
         let product = await ProductRepository.GetProductById(productId)
+        let isLiked = await ProductRepository.CheckIfProductIsLikedByUser(productId, id)
+        let quantityInCart = await ProductRepository.QuantityAddedToCard(productId, id)
+        if (!product)
+            return res.status(500).send('Internal Server Error while getting the product')
+        return res.send({ product, isLiked, quantityInCart })
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
+export const GetSellingProducts = async (req, res) => {
+    const { skip, limit } = req.query
+    try {
+        let product = await ProductRepository.GetSellingProducts(skip, limit)
+        if (!product)
+            return res.status(500).send('Internal Server Error while getting the product')
+        return res.send(product)
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
+export const GetExchangeProducts = async (req, res) => {
+    const { skip, limit } = req.query
+    try {
+        let product = await ProductRepository.GetExchangeProducts(skip, limit)
         if (!product)
             return res.status(500).send('Internal Server Error while getting the product')
         return res.send(product)
@@ -74,6 +96,42 @@ export const DeleteProduct = async (req, res) => {
         if (!product)
             return res.status(500).send('Internal Server Error while deleting the product')
         return res.send("Product is successfully deleted")
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
+export const LikeProduct = async (req, res) => {
+    const errors = validationResult(req)
+    if (!errors.isEmpty())
+        return res.status(400).json({ errors: errors.array() })
+
+    const { productId } = req.body
+    const { id, fcmToken } = req.user
+
+    try {
+        let wishlist = await ProductRepository.LikeProduct(productId, id)
+        if (!wishlist)
+            return res.status(500).send('Internal Server Error while liking the product')
+        return res.send("Product is added to your wishlist")
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
+export const AddProductToCart = async (req, res) => {
+    const errors = validationResult(req)
+    if (!errors.isEmpty())
+        return res.status(400).json({ errors: errors.array() })
+
+    const { productId } = req.body
+    const { id, fcmToken } = req.user
+
+    try {
+        // let wishlist = await ProductRepository.AddProductToCart(productId, id)
+        if (!wishlist)
+            return res.status(500).send('Internal Server Error while adding product in the cart')
+        return res.send("Product is added in the cart")
     } catch (error) {
         console.error(error.message)
         return res.status(500).send(error.message)

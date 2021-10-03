@@ -1,9 +1,11 @@
+import { CartModel } from "../Model/CartModel.js";
 import { CategoryModel } from "../Model/CategoryModel.js";
 import { CityModel } from "../Model/CityModel.js";
 import { ConditionModel } from "../Model/ConditionModel.js"
 import { MediaModel } from "../Model/MediaModel.js";
 import { ProductModel } from "../Model/ProductModel.js";
 import { UserModel } from "../Model/UserModal.js";
+import { WishlistModel } from "../Model/WishlistModel.js";
 
 
 export const ProductRepository = {
@@ -92,4 +94,118 @@ export const ProductRepository = {
         let product = await model.save()
         return product
     },
+    GetSellingProducts: async (skip, limit) => {
+        // let model = ProductModel.aggregate.lookup({ from: 'wishlist', localField: '_id', foreignField: 'student', as: 'wishlist' })
+        // let model = ProductModel.find({ forExchange: false }).select('productName price description')
+        let model = await ProductModel
+            // .find({ forExchange: false })
+            .aggregate([  // TODO : check if works fine after like/unlike & cart API is implemented
+                {
+                    $lookup: {
+                        from: "wishlist", // * collection name in db
+                        localField: "_id",
+                        foreignField: "product",
+                        as: "isLiked"
+                    },
+                },
+                {
+                    $lookup: {
+                        from: "cart", // * collection name in db
+                        localField: "_id",
+                        foreignField: "product",
+                        as: "quantityInCart"
+                    }
+                },//! there is no user match filter
+                { $match: { forExchange: false } }, // TODO : test this when there are multiple product entries
+                {
+                    $project: {
+                        "quantity": 0,
+                        "forExchange": 0,
+                        "isDeleted": 0,
+                        "createdOn": 0,
+                        "category": 0,
+                        "city": 0,
+                        "condition": 0,
+                        "user": 0,
+                        "__v": 0,
+                    }
+                },
+                { "$limit": limit == undefined ? 1000000 : parseInt(skip + limit) },
+                { "$skip": skip == undefined ? 0 : parseInt(skip) },
+            ]).exec()
+        let modelTemp = model
+        model.map((item, key) => {
+            modelTemp[key].isLiked = item.isLiked.length != 0 ? true : false
+            modelTemp[key].quantityInCart = item.quantityInCart.length
+        })
+        return modelTemp
+    },
+    GetExchangeProducts: async (skip, limit) => {
+        // let model = ProductModel.aggregate.lookup({ from: 'wishlist', localField: '_id', foreignField: 'student', as: 'wishlist' })
+        // let model = ProductModel.find({ forExchange: false }).select('productName price description')
+        let model = await ProductModel
+            // .find({ forExchange: false })
+            .aggregate([  // TODO : check if works fine after like/unlike & cart API is implemented
+                {
+                    $lookup: {
+                        from: "wishlist", // * collection name in db
+                        localField: "_id",
+                        foreignField: "product",
+                        as: "isLiked"
+                    },
+                },
+                {
+                    $lookup: {
+                        from: "cart", // * collection name in db
+                        localField: "_id",
+                        foreignField: "product",
+                        as: "quantityInCart"
+                    }
+                },//! there is no user match filter
+                { $match: { forExchange: true } }, // TODO : test this when there are multiple product entries
+                {
+                    $project: {
+                        "quantity": 0,
+                        "forExchange": 0,
+                        "isDeleted": 0,
+                        "createdOn": 0,
+                        "category": 0,
+                        "city": 0,
+                        "condition": 0,
+                        "user": 0,
+                        "__v": 0,
+                    }
+                },
+                { "$limit": limit == undefined ? 1000000 : parseInt(skip + limit) },
+                { "$skip": skip == undefined ? 0 : parseInt(skip) },
+            ]).exec()
+        let modelTemp = model
+        model.map((item, key) => {
+            modelTemp[key].isLiked = item.isLiked.length != 0 ? true : false
+            modelTemp[key].quantityInCart = item.quantityInCart.length
+        })
+        return modelTemp
+    },
+    CheckIfProductIsLikedByUser: async (productId, id) => {
+        let model = await WishlistModel.findOne({ product: productId, user: id }).select()
+        if (!model)
+            return false
+        return true
+    },
+    QuantityAddedToCard: async (productId, id) => {
+        let model = await CartModel.find({ product: productId, user: id }).select()
+        if (model.length == 0)
+            return 0
+        return model.quantity
+    },
+    LikeProduct: async (productId, id) => {
+        let user = await UserModel.findOne({ _id: id }).select()
+        let product = await ProductModel.findOne({ _id: productId }).select()
+        let wishlistModel = new WishlistModel({
+            product,
+            user,
+        })
+        let wishlist = await wishlistModel.save()
+        return wishlist
+    }
 }

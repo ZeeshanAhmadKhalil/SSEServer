@@ -20,7 +20,9 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.0.6",
     "mongoose-seed": "^0.6.0",
-    "request": "^2.88.2"
+    "request": "^2.88.2",
+    "swagger-jsdoc": "^6.1.0",
+    "swagger-ui-express": "^4.1.6"
   },
   "devDependencies": {
     "concurrent": "^0.3.2",

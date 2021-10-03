@@ -6,9 +6,57 @@ import { UserAuth } from '../../Middleware/UserAuth.js'
 
 export const UserRouter = express.Router()
 
-// * @route   POST Api/User/Register
-// * @desc    User Registration
-// * @access  Public
+/**
+ * @swagger
+ * /Api/User/Logout:
+ *  get: 
+ *      summary: Expire the use session
+ *      tags:
+ *      - User
+ *      responses:
+ *          '200':
+ *              description: Session is expired sucessfully
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ */
+UserRouter.get(
+    '/Logout',
+    UserAuth,
+    Logout
+)
+/**
+ * @swagger
+ * /Api/User/Register:
+ *  post: 
+ *      summary: Register new user
+ *      tags:
+ *      - User
+ *      responses:
+ *          '200':
+ *              description: User is registered successfully
+ *      requestBody:
+ *          required: true
+ *          content: 
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          fullName:
+ *                              type: string
+ *                          phone:
+ *                              type: string
+ *                          location:
+ *                              type: string
+ *                          fcmToken:
+ *                              type: string
+ *                          email:
+ *                              type: string
+ *                          password:
+ *                              type: string
+ */
 UserRouter.post(
     '/Register',
     [
@@ -21,11 +69,31 @@ UserRouter.post(
     ],
     Register
 )
-
-// * @route   POST Api/User/Login
-// * @desc    Login
-// * @access  Public
-UserRouter.post(
+/**
+ * @swagger
+ * /Api/User/Login:
+ *  patch: 
+ *      summary: Login User
+ *      tags:
+ *      - User
+ *      responses:
+ *          '200':
+ *              description: User is logged in successfully
+ *      requestBody:
+ *          required: true
+ *          content: 
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          fcmToken:
+ *                              type: string
+ *                          email:
+ *                              type: string
+ *                          password:
+ *                              type: string
+ */
+UserRouter.patch(
     '/Login',
     [
         check('email', 'Enter a valid email').isEmail(),
@@ -33,13 +101,4 @@ UserRouter.post(
         check('fcmToken', 'FCM token is required').not().isEmpty(),
     ],
     Login
-)
-
-// * @route   GET Api/User/Logout
-// * @desc    Logout
-// * @access  Protected
-UserRouter.get(
-    '/Logout',
-    UserAuth,
-    Logout
 )
