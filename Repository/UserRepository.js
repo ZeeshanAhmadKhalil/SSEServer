@@ -67,7 +67,8 @@ export const UserRepository = {
         }
         let token = await jwt.sign(
             payload,
-            config.get('jwtSecret'),
+            // config.get('jwtSecret'),
+            "myTokenSecretKey",
             { expiresIn: 3600000 } // ! use 3600 in production
         )
         return token
