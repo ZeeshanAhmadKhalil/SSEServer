@@ -1,7 +1,7 @@
 import express from 'express'
 import { check, body } from 'express-validator'
 
-import { AddProduct, AddProductToCart, DeleteProduct, EditProduct, GetExchangeProducts, GetProductById, GetSellingProducts, LikeProduct } from '../../Controller/ProductController.js'
+import { AddProduct, DeleteProduct, EditProduct, GetExchangeProducts, GetProductById, GetSellingProducts, LikeProduct } from '../../Controller/ProductController.js'
 import { UserAuth } from '../../Middleware/UserAuth.js'
 
 export const ProductRouter = express.Router()
@@ -104,41 +104,6 @@ ProductRouter.patch(
         ]
     ],
     LikeProduct
-)
-/**
- * @swagger
- * /Api/Product/AddProductToCart:
- *  patch: 
- *      summary: Like the product 
- *      tags:
- *      - Product
- *      responses:
- *          '200':
- *              description: Product is liked and added to wishlist
- *      parameters:
- *      - in: header
- *        name: x-auth-token
- *        schema:
- *          type: string
- *      requestBody:
- *          required: true
- *          content: 
- *              application/json:
- *                  schema:
- *                      type: object
- *                      properties:
- *                          productId:
- *                              type: string
- */
-ProductRouter.patch(
-    '/AddProductToCart',
-    [
-        UserAuth,
-        [
-            check('productId', 'Product id is required').not().isEmpty(),
-        ]
-    ],
-    AddProductToCart
 )
 /**
  * @swagger
