@@ -11,7 +11,7 @@ const OrderSchema = new mongoose.Schema({
     },
     orderStatus: {
         type: mongoose.Types.ObjectId,
-        ref: 'Order',
+        ref: 'OrderStatus',
     },
     user: {
         type: mongoose.Types.ObjectId,

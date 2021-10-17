@@ -37,8 +37,9 @@ export const GetProductById = async (req, res) => {
 }
 export const GetSellingProducts = async (req, res) => {
     const { skip, limit } = req.query
+    const { id, fcmToken } = req.user
     try {
-        let product = await ProductRepository.GetSellingProducts(skip, limit)
+        let product = await ProductRepository.GetSellingProducts(skip, limit, id)
         if (!product)
             return res.status(500).send('Internal Server Error while getting the product')
         return res.send(product)
@@ -49,8 +50,46 @@ export const GetSellingProducts = async (req, res) => {
 }
 export const GetExchangeProducts = async (req, res) => {
     const { skip, limit } = req.query
+    const { id, fcmToken } = req.user
     try {
-        let product = await ProductRepository.GetExchangeProducts(skip, limit)
+        let product = await ProductRepository.GetExchangeProducts(skip, limit, id)
+        if (!product)
+            return res.status(500).send('Internal Server Error while getting the product')
+        return res.send(product)
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
+export const GetMyWishlist = async (req, res) => {
+    const { skip, limit } = req.query
+    const { id, fcmToken } = req.user
+    try {
+        let product = await ProductRepository.GetMyWishlist(skip, limit, id)
+        if (!product)
+            return res.status(500).send('Internal Server Error while getting the product')
+        return res.send(product)
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
+export const GetMyProducts = async (req, res) => {
+    const { skip, limit } = req.query
+    const { id, fcmToken } = req.user
+    try {
+        let product = await ProductRepository.GetMyProducts(skip, limit, id)
+        if (!product)
+            return res.status(500).send('Internal Server Error while getting the product')
+        return res.send(product)
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
+export const GetMostlyLikedProducts = async (req, res) => { // * first five
+    try {
+        let product = await ProductRepository.GetMostlyLikedProducts()
         if (!product)
             return res.status(500).send('Internal Server Error while getting the product')
         return res.send(product)
@@ -110,10 +149,13 @@ export const LikeProduct = async (req, res) => {
     const { id, fcmToken } = req.user
 
     try {
-        let wishlist = await ProductRepository.LikeProduct(productId, id)
-        if (!wishlist)
+        let result = await ProductRepository.LikeProduct(productId, id)
+        if (result == 0)
             return res.status(500).send('Internal Server Error while liking the product')
-        return res.send("Product is added to your wishlist")
+        if (result == 1)
+            return res.send("Product is added to your wishlist")
+        if (result == -1)
+            return res.send("Product is removed from your wishlist")
     } catch (error) {
         console.error(error.message)
         return res.status(500).send(error.message)

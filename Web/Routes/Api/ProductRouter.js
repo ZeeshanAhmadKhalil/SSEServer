@@ -1,7 +1,18 @@
 import express from 'express'
 import { check, body } from 'express-validator'
 
-import { AddProduct, DeleteProduct, EditProduct, GetExchangeProducts, GetProductById, GetSellingProducts, LikeProduct } from '../../Controller/ProductController.js'
+import {
+    AddProduct,
+    DeleteProduct,
+    EditProduct,
+    GetExchangeProducts,
+    GetMostlyLikedProducts,
+    GetMyProducts,
+    GetMyWishlist,
+    GetProductById,
+    GetSellingProducts,
+    LikeProduct
+} from '../../Controller/ProductController.js'
 import { UserAuth } from '../../Middleware/UserAuth.js'
 
 export const ProductRouter = express.Router()
@@ -187,6 +198,85 @@ ProductRouter.get(
     '/GetExchangeProducts',
     UserAuth,
     GetExchangeProducts
+)
+/**
+ * @swagger
+ * /Api/Product/GetMyWishlist:
+ *  get: 
+ *      summary: Get Wishlist 
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Wishlist are successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      - in: query
+ *        name: limit
+ *        schema:
+ *          type: integer
+ *      - in: query
+ *        name: skip
+ *        schema:
+ *          type: integer
+ */
+ProductRouter.get(
+    '/GetMyWishlist',
+    UserAuth,
+    GetMyWishlist
+)
+/**
+ * @swagger
+ * /Api/Product/GetMyProducts:
+ *  get: 
+ *      summary: Get My products 
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: My products are successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      - in: query
+ *        name: limit
+ *        schema:
+ *          type: integer
+ *      - in: query
+ *        name: skip
+ *        schema:
+ *          type: integer
+ */
+ProductRouter.get(
+    '/GetMyProducts',
+    UserAuth,
+    GetMyProducts
+)
+/**
+ * @swagger
+ * /Api/Product/GetMostlyLikedProducts:
+ *  get: 
+ *      summary: Get 5 Mostly liked products
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: 5 Mostly liked productsare successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ */
+ProductRouter.get(
+    '/GetMostlyLikedProducts',
+    UserAuth,
+    GetMostlyLikedProducts
 )
 /**
  * @swagger

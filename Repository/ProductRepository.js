@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { CartModel } from "../Model/CartModel.js";
 import { CategoryModel } from "../Model/CategoryModel.js";
 import { CityModel } from "../Model/CityModel.js";
@@ -8,7 +9,7 @@ import { UserModel } from "../Model/UserModal.js";
 import { WishlistModel } from "../Model/WishlistModel.js";
 
 
-export const ProductRepository = {
+export const ProductRepository = { //todo: acending order by created on while fetching the products.
     AddProduct: async (productName, price, quantity, forExchange, description, categoryId, cityId, conditionId, images, id) => {
         let condition = await ConditionModel.findOne({ _id: conditionId }).select()
         if (!condition)
@@ -43,7 +44,7 @@ export const ProductRepository = {
         return product
     },
     GetProductById: async (productId) => {
-        return await ProductModel.findById(productId).populate('category').populate('city').populate('condition').populate('user').exec()
+        return await ProductModel.findById(productId).populate('category city condition user media').exec()
     },
     EditProduct: async (productId, productName, price, quantity, forExchange, description, categoryId, cityId, conditionId, images) => {
         let model = await ProductModel.findOne({ _id: productId }).select()
@@ -94,29 +95,75 @@ export const ProductRepository = {
         let product = await model.save()
         return product
     },
-    GetSellingProducts: async (skip, limit) => {
-        // let model = ProductModel.aggregate.lookup({ from: 'wishlist', localField: '_id', foreignField: 'student', as: 'wishlist' })
-        // let model = ProductModel.find({ forExchange: false }).select('productName price description')
+    GetSellingProducts: async (skip, limit, id) => {
         let model = await ProductModel
-            // .find({ forExchange: false })
-            .aggregate([  // TODO : check if works fine after like/unlike & cart API is implemented
+            .aggregate([
                 {
                     $lookup: {
-                        from: "wishlist", // * collection name in db
-                        localField: "_id",
+                        from: "wishlists", // * collection name in db
+                        localField: "_id", // todo: comment this if you want to uncomment pipeline
                         foreignField: "product",
-                        as: "isLiked"
+                        as: "isLiked",
+                        // let: {
+                        //     'product': '$product'
+                        // },
+                        // pipeline: [
+                        //     {
+                        //         $match: {
+                        //             $expr: {
+                        //                 $and: [
+                        //                     { $eq: ['$product', '$$product'] }, //! this line is't working
+                        //                     { $eq: ['$user', mongoose.Types.ObjectId(id)] },
+                        //                 ]
+                        //             }
+                        //         }
+                        //     }
+                        // ],
                     },
                 },
                 {
                     $lookup: {
-                        from: "cart", // * collection name in db
+                        from: "carts", // * collection name in db
                         localField: "_id",
                         foreignField: "product",
                         as: "quantityInCart"
                     }
-                },//! there is no user match filter
-                { $match: { forExchange: false } }, // TODO : test this when there are multiple product entries
+                },
+                {
+                    $addFields: {
+                        "isLiked": {
+                            $arrayElemAt: [
+                                {
+                                    $filter: {
+                                        input: '$isLiked',
+                                        as: 'isLiked',
+                                        cond: {
+                                            $eq: ['$$isLiked.user', mongoose.Types.ObjectId(id)]
+                                        }
+                                    }
+                                }, 0 // * arrayElemAt index 0
+                            ]
+                        }
+                    }
+                },
+                {
+                    $addFields: {
+                        "quantityInCart": {
+                            $arrayElemAt: [
+                                {
+                                    $filter: {
+                                        input: '$quantityInCart',
+                                        as: 'quantityInCart',
+                                        cond: {
+                                            $eq: ['$$quantityInCart.user', mongoose.Types.ObjectId(id)]
+                                        }
+                                    }
+                                }, 0 // * arrayElemAt index 0
+                            ]
+                        }
+                    }
+                },
+                { $match: { forExchange: false } },
                 {
                     $project: {
                         "quantity": 0,
@@ -133,36 +180,43 @@ export const ProductRepository = {
                 { "$limit": limit == undefined ? 1000000 : parseInt(skip + limit) },
                 { "$skip": skip == undefined ? 0 : parseInt(skip) },
             ]).exec()
+        model = await ProductModel.populate(model, { path: 'media' })
         let modelTemp = model
         model.map((item, key) => {
-            modelTemp[key].isLiked = item.isLiked.length != 0 ? true : false
-            modelTemp[key].quantityInCart = item.quantityInCart.length
+            modelTemp[key].isLiked = item.isLiked != undefined ? true : false
+            modelTemp[key].quantityInCart = item.quantityInCart != undefined ? item.quantityInCart.quantity : 0
         })
         return modelTemp
     },
-    GetExchangeProducts: async (skip, limit) => {
-        // let model = ProductModel.aggregate.lookup({ from: 'wishlist', localField: '_id', foreignField: 'student', as: 'wishlist' })
-        // let model = ProductModel.find({ forExchange: false }).select('productName price description')
+    GetExchangeProducts: async (skip, limit, id) => {
         let model = await ProductModel
-            // .find({ forExchange: false })
-            .aggregate([  // TODO : check if works fine after like/unlike & cart API is implemented
+            .aggregate([
                 {
                     $lookup: {
-                        from: "wishlist", // * collection name in db
+                        from: "wishlists", // * collection name in db
                         localField: "_id",
                         foreignField: "product",
                         as: "isLiked"
                     },
                 },
                 {
-                    $lookup: {
-                        from: "cart", // * collection name in db
-                        localField: "_id",
-                        foreignField: "product",
-                        as: "quantityInCart"
+                    $addFields: {
+                        "isLiked": {
+                            $arrayElemAt: [
+                                {
+                                    $filter: {
+                                        input: '$isLiked',
+                                        as: 'isLiked',
+                                        cond: {
+                                            $eq: ['$$isLiked.user', mongoose.Types.ObjectId(id)]
+                                        }
+                                    }
+                                }, 0 // * arrayElemAt index 0
+                            ]
+                        }
                     }
-                },//! there is no user match filter
-                { $match: { forExchange: true } }, // TODO : test this when there are multiple product entries
+                },
+                { $match: { forExchange: true } },
                 {
                     $project: {
                         "quantity": 0,
@@ -179,12 +233,94 @@ export const ProductRepository = {
                 { "$limit": limit == undefined ? 1000000 : parseInt(skip + limit) },
                 { "$skip": skip == undefined ? 0 : parseInt(skip) },
             ]).exec()
+        model = await ProductModel.populate(model, { path: 'media' })
         let modelTemp = model
         model.map((item, key) => {
-            modelTemp[key].isLiked = item.isLiked.length != 0 ? true : false
-            modelTemp[key].quantityInCart = item.quantityInCart.length
+            modelTemp[key].isLiked = item.isLiked != undefined ? true : false
         })
         return modelTemp
+    },
+    GetMyWishlist: async (skip, limit, id) => {
+        let model = await WishlistModel.aggregate([
+            {
+                $lookup: {
+                    from: "carts", // * collection name in db
+                    localField: "product",
+                    foreignField: "product",
+                    as: "quantityInCart"
+                },
+            },
+            {
+                $addFields: {
+                    "quantityInCart": {
+                        $arrayElemAt: [
+                            {
+                                $filter: {
+                                    input: '$quantityInCart',
+                                    as: 'quantityInCart',
+                                    cond: {
+                                        $eq: ['$$quantityInCart.user', mongoose.Types.ObjectId(id)]
+                                    }
+                                }
+                            }, 0 // * arrayElemAt index 0
+                        ]
+                    }
+                }
+            },
+            { $match: { user: mongoose.Types.ObjectId(id) } },
+            {
+                $project: {
+                    "user": 0,
+                    "__v": 0,
+                }
+            },
+            { "$limit": limit == undefined ? 1000000 : parseInt(skip + limit) },
+            { "$skip": skip == undefined ? 0 : parseInt(skip) },
+        ])
+        model = await WishlistModel.populate(model, { path: 'product', populate: { path: 'media' } })
+        let modelTemp = model
+        model.map((item, key) => {
+            modelTemp[key].quantityInCart = item.quantityInCart != undefined ? item.quantityInCart.quantity : 0
+        })
+        return modelTemp
+    },
+    GetMyProducts: async (skip, limit, id) => {
+        return await ProductModel.find({ user: mongoose.Types.ObjectId(id) }).populate('media').limit(limit == undefined ? 1000000 : parseInt(skip + limit)).skip(skip == undefined ? 0 : parseInt(skip)).select()
+    },
+    GetMostlyLikedProducts: async () => {
+        let model = await ProductModel
+            .aggregate([
+                {
+                    $lookup: {
+                        from: "wishlists", // * collection name in db
+                        localField: "_id",
+                        foreignField: "product",
+                        as: "isLiked"
+                    },
+                },
+                {
+                    $addFields: {
+                        "isLiked": { $size: '$isLiked' }
+                    }
+                },
+                {
+                    $project: {
+                        "quantity": 0,
+                        "forExchange": 0,
+                        "isDeleted": 0,
+                        "createdOn": 0,
+                        "category": 0,
+                        "city": 0,
+                        "condition": 0,
+                        "user": 0,
+                        "__v": 0,
+                    }
+                },
+                { $sort: { 'isLiked': -1 } },
+                { "$limit": 5 },
+                { "$skip": 0 },
+            ]).exec()
+        return await ProductModel.populate(model, { path: 'media' })
     },
     CheckIfProductIsLikedByUser: async (productId, id) => {
         let model = await WishlistModel.findOne({ product: productId, user: id }).select()
@@ -199,6 +335,9 @@ export const ProductRepository = {
         return model.quantity
     },
     LikeProduct: async (productId, id) => {
+        let result = await WishlistModel.findOneAndDelete({ user: id, product: productId })
+        if (result)
+            return -1
         let user = await UserModel.findOne({ _id: id }).select()
         let product = await ProductModel.findOne({ _id: productId }).select()
         let wishlistModel = new WishlistModel({
@@ -206,6 +345,8 @@ export const ProductRepository = {
             user,
         })
         let wishlist = await wishlistModel.save()
-        return wishlist
+        if (wishlist)
+            return 1
+        return 0
     }
 }
