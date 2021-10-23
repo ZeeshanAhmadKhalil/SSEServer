@@ -1,6 +1,7 @@
 import { validationResult } from "express-validator"
 
 import { CartRepository } from "../../Repository/CartRepository.js"
+import { ProductRepository } from "../../Repository/ProductRepository.js"
 
 export const AddProductToCart = async (req, res) => {
     const errors = validationResult(req)
@@ -14,6 +15,9 @@ export const AddProductToCart = async (req, res) => {
         let result = await CartRepository.CheckIfForExchangeProduct(productId)
         if (result)
             return res.status(400).send('This feature is only availible for selling products')
+        let result1 = await ProductRepository.CheckIfProductBelongsToUser(productId, id)
+        if (result1)
+            return res.status(401).send("You can not add your own product in the cart")
         let cart = await CartRepository.AddProductToCart(productId, id)
         if (!cart)
             return res.status(400).send('You already added all quantity in the cart')
@@ -65,6 +69,18 @@ export const TotalProductsInCart = async (req, res) => {
         if (!productCount)
             return res.status(500).send('Internal Server Error while getting total products')
         return res.send(productCount.toString())
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
+export const TotalOfAllCartProcucts = async (req, res) => {
+    const { id, fcmToken } = req.user
+    try {
+        let productsTotal = await CartRepository.TotalOfAllCartProcucts(id)
+        if (!productsTotal)
+            return res.status(500).send('Internal Server Error while getting total of products in the cart')
+        return res.send(productsTotal.toString())
     } catch (error) {
         console.error(error.message)
         return res.status(500).send(error.message)

@@ -1,7 +1,7 @@
 import express from 'express'
 import { check } from 'express-validator'
 
-import { AddProductToCart, GetMyCart, RemoveProductFromCart, TotalProductsInCart } from '../../Controller/CartController.js'
+import { AddProductToCart, GetMyCart, RemoveProductFromCart, TotalOfAllCartProcucts, TotalProductsInCart } from '../../Controller/CartController.js'
 import { UserAuth } from '../../Middleware/UserAuth.js'
 
 export const CartRouter = express.Router()
@@ -117,4 +117,25 @@ CartRouter.get(
     '/TotalProductsInCart',
     UserAuth,
     TotalProductsInCart
+)
+/**
+ * @swagger
+ * /Api/Cart/TotalOfAllCartProcucts:
+ *  get: 
+ *      summary: Get Total cost of Products in the cart
+ *      tags:
+ *      - Cart
+ *      responses:
+ *          '200':
+ *              description: Total cost of products in cart count is successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ */
+CartRouter.get(
+    '/TotalOfAllCartProcucts',
+    UserAuth,
+    TotalOfAllCartProcucts
 )

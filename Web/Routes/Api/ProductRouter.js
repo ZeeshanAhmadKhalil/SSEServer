@@ -11,7 +11,8 @@ import {
     GetMyWishlist,
     GetProductById,
     GetSellingProducts,
-    LikeProduct
+    LikeProduct,
+    SearchProducts
 } from '../../Controller/ProductController.js'
 import { UserAuth } from '../../Middleware/UserAuth.js'
 
@@ -140,6 +141,39 @@ ProductRouter.get(
     '/GetProductById',
     UserAuth,
     GetProductById
+)
+/**
+ * @swagger
+ * /Api/Product/SearchProducts:
+ *  get: 
+ *      summary: Search product by name, description and category
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Searched products are successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      - in: query
+ *        name: limit
+ *        schema:
+ *          type: integer
+ *      - in: query
+ *        name: skip
+ *        schema:
+ *          type: integer
+ *      - in: query
+ *        name: searchQuery
+ *        schema:
+ *          type: integer
+ */
+ProductRouter.get(
+    '/SearchProducts',
+    UserAuth,
+    SearchProducts
 )
 /**
  * @swagger

@@ -61,4 +61,12 @@ export const CartRepository = { //todo: dont add product in cart if its your own
     TotalProductsInCart: async (id) => {
         return await CartModel.count({ user: mongoose.Types.ObjectId(id) })
     },
+    TotalOfAllCartProcucts: async (id) => {
+        let models = await CartModel.find({ user: mongoose.Types.ObjectId(id) }).populate('product').select()
+        let productsTotal = 0
+        models.forEach(element => {
+            productsTotal = productsTotal + element.product.price * element.quantity
+        })
+        return productsTotal
+    },
 }

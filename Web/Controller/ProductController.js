@@ -35,6 +35,19 @@ export const GetProductById = async (req, res) => {
         return res.status(500).send(error.message)
     }
 }
+export const SearchProducts = async (req, res) => {
+    const { skip, limit, searchQuery } = req.query
+    const { id, fcmToken } = req.user
+    try {
+        let product = await ProductRepository.SearchProducts(skip, limit, searchQuery, id)
+        if (!product)
+            return res.status(500).send('Internal Server Error while getting the product')
+        return res.send(product)
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
 export const GetSellingProducts = async (req, res) => {
     const { skip, limit } = req.query
     const { id, fcmToken } = req.user
@@ -149,6 +162,9 @@ export const LikeProduct = async (req, res) => {
     const { id, fcmToken } = req.user
 
     try {
+        let result1 = await ProductRepository.CheckIfProductBelongsToUser(productId, id)
+        if (result1)
+            return res.status(401).send("You can not add your own product in the wishlist")
         let result = await ProductRepository.LikeProduct(productId, id)
         if (result == 0)
             return res.status(500).send('Internal Server Error while liking the product')
