@@ -24,7 +24,7 @@ export const Register = async (req, res) => {
         if (userModel)
             return res.status(400).json({ errors: [{ msg: "User with the same phone already exists" }] })
         userModel = await UserRepository.Register(fullName, phone, location, email, password, fcmToken)
-        const token = await UserRepository.GenerateToken(userModel.id, fcmToken)
+        const token = await UserRepository.GenerateToken(userModel.id, userModel.role.roleName, fcmToken)
         return res.json({ token, userModel })
     } catch (error) {
         console.error(error.message)
@@ -42,7 +42,7 @@ export const Login = async (req, res) => {
         let userModel = await UserRepository.Login(email, password, fcmToken)
         if (!userModel)
             return res.status(400).json({ errors: [{ msg: "Invalid Email or Password" }] })
-        const token = await UserRepository.GenerateToken(userModel.id, fcmToken)
+        const token = await UserRepository.GenerateToken(userModel.id, userModel.role.roleName, fcmToken)
         return res.json({ token, userModel })
     } catch (error) {
         console.error(error.message)

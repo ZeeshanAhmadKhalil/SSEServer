@@ -31,11 +31,12 @@ export const UserRepository = {
             profilePic,
             fcmTokens: [fcmToken],
             role,
+            createdOn: Date.now()
         })
         const salt = await bcrypt.genSalt(10)
         userModel.password = await bcrypt.hash(password, salt)
         await userModel.save()
-        return userModel
+        return await UserModel.populate(userModel, { path: 'role' })
     },
     Login: async (email, password, fcmToken) => {
         let userModel = await UserModel.findOne({ email }).select()
@@ -48,7 +49,7 @@ export const UserRepository = {
         if (!userModel.fcmTokens.includes(fcmToken))
             userModel.fcmTokens.push(fcmToken)
         userModel.save()
-        return userModel
+        return await UserModel.populate(userModel, { path: 'role' })
     },
     Logout: async (id, fcmToken) => {
         let result = await UserModel.updateOne({ $and: [{ id }, { fcmTokens: fcmToken }] }, { $pullAll: { fcmTokens: [fcmToken] } }) // * will find and update user
@@ -58,10 +59,11 @@ export const UserRepository = {
             return false
         return true
     },
-    GenerateToken: async (id, fcmToken) => {
+    GenerateToken: async (id, roleName, fcmToken) => {
         const payload = {
             user: {
                 id,
+                roleName,
                 fcmToken
             }
         }

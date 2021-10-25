@@ -76,7 +76,7 @@ ProductRouter.post(
                     throw new Error('Each product should have at least 3 images');
                 }
                 // Indicates the success of this synchronous custom validator
-                return true;
+                return true;    
             }),
         ]
     ],

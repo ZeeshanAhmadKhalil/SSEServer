@@ -3,6 +3,7 @@ import swaggerJSDoc from 'swagger-jsdoc'
 import swaggerUI from 'swagger-ui-express'
 
 import { ConnectDB } from './Config/SSEContext.js'
+import { AdminRouter } from './Web/Routes/Api/AdminRouter.js'
 
 import { CartRouter } from './Web/Routes/Api/CartRouter.js'
 import { ChatRouter } from './Web/Routes/Api/ChatRouter.js'
@@ -59,6 +60,7 @@ app.use('/Api/Chat', ChatRouter)
 app.use('/Api/Product', ProductRouter)
 app.use('/Api/User', UserRouter)
 app.use('/Api/Wallet', WalletRouter)
+app.use('/Api/Admin', AdminRouter)
 
 const PORT = process.env.PORT || 6900
 app.listen(PORT, () => console.info(`Server is running on port ${PORT}`))

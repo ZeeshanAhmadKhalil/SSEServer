@@ -39,6 +39,7 @@ export const ProductRepository = { //todo: acending order by created on while fe
             condition,
             user,
             media,
+            createdOn: Date.now(),
         })
         let product = await productModel.save()
         return product
