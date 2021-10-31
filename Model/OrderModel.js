@@ -5,9 +5,13 @@ const OrderSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    isPaymentByHand: {
+        type: Boolean,
+        required: true,
+    },
     createdOn: {
         type: Date,
-        default: Date.now(),
+        required: true,
     },
     orderStatus: {
         type: mongoose.Types.ObjectId,

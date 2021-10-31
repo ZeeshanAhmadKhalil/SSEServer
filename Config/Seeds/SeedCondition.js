@@ -7,7 +7,7 @@ export const SeedCondition = async () => {
             conditionName: "New"
         },
         {
-            conditionName: "User"
+            conditionName: "Used"
         },
     ])
     console.info("Conditions are successfully seeded")

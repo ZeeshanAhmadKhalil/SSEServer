@@ -4,8 +4,13 @@ import { CategoryModel } from "../Model/CategoryModel.js";
 import { CityModel } from "../Model/CityModel.js";
 import { ConditionModel } from "../Model/ConditionModel.js"
 import { MediaModel } from "../Model/MediaModel.js";
+import { OrderModel } from "../Model/OrderModel.js";
+import { OrderProductModel } from "../Model/OrderProductModel.js";
+import { OrderStatusModel } from "../Model/OrderStatusModel.js";
 import { ProductModel } from "../Model/ProductModel.js";
+import { TransactionModel } from "../Model/TransactionModel.js";
 import { UserModel } from "../Model/UserModal.js";
+import { WalletModel } from "../Model/WalletModel.js";
 import { WishlistModel } from "../Model/WishlistModel.js";
 
 
@@ -451,5 +456,66 @@ export const ProductRepository = { //todo: acending order by created on while fe
         if (wishlist)
             return 1
         return 0
+    },
+    CheckIfCartProductsAreAvailible: async (id) => {
+        let cartModel = await CartModel.find({ user: mongoose.Types.ObjectId(id) }).select()
+        let unavailibleProducts = []
+        for (const element of cartModel) {
+            var product = await ProductModel.findById(element.product).select()
+            if (product.quantity < element.quantity)
+                unavailibleProducts.push(`${parseInt(element.quantity.quantity - product.quantity)} ${product.productName}`)
+        }
+        return unavailibleProducts
+    },
+    OrderProducts: async (id, isPaymentByHand, deliveryAddress) => {
+        let cartModel = await CartModel.find({ user: mongoose.Types.ObjectId(id) }).select()
+        if (cartModel.length == 0)
+            return false
+        let orderModel = new OrderModel({
+            deliveryAddress,
+            isPaymentByHand,
+            createdOn: Date.now(),
+            orderStatus: mongoose.Types.ObjectId("614f733793e00a99cca623b1"), //* Delivering order status
+            user: mongoose.Types.ObjectId(id),
+        })
+        let order = await orderModel.save()
+        for (const element of cartModel) {
+            var productModel = await ProductModel.findById(element.product).select()
+            if (!productModel)
+                return false
+            productModel.quantity = productModel.quantity - element.quantity
+            var orderProductModel = new OrderProductModel({
+                quantity: element.quantity,
+                order: mongoose.Types.ObjectId(order._id),
+                product: mongoose.Types.ObjectId(productModel._id)
+            })
+            orderProductModel.save()
+            productModel.save()
+        }
+        await CartModel.deleteMany({ user: id })
+        return true
+    },
+    CheckIfOrderBelongsToUser: async (id, orderId) => {
+        let orderModel = await OrderModel.findById(orderId).select()
+        if (!orderModel)
+            return false
+        if (orderModel.user != id)
+            return false
+        return true
+    },
+    GeOrderStatus: async (orderId) => {
+        let orderModel = await OrderModel.findById(orderId).populate({ path: "orderStatus", model: OrderStatusModel }).select()
+        return orderModel.orderStatus.orderStatus
+    },
+    ChangeOrderStatus: async (orderId, status) => {
+        let orderModel = await OrderModel.findById(orderId).populate({ path: "orderStatus", model: OrderStatusModel }).select()
+        if (!orderModel)
+            return null
+        let orderStatusModel = await OrderStatusModel.findOne({ orderStatus: status }).select()
+        if (!orderStatusModel)
+            return null
+        orderModel.orderStatus = mongoose.Types.ObjectId(orderStatusModel._id)
+        let order = await orderModel.save()
+        return order;
     }
 }

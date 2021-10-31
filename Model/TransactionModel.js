@@ -11,7 +11,10 @@ const TransactionSchema = new mongoose.Schema({
     },
     performedOn: {
         type: Date,
-        default: Date.now(),
+        required: true,
+    },
+    quantity: {
+        type: Number,
     },
     transactionType: {
         type: mongoose.Types.ObjectId,

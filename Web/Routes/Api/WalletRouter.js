@@ -1,7 +1,7 @@
 import express from 'express'
 import { check } from 'express-validator'
 
-import { DepositRequest, GetDepositRequests } from '../../Controller/WalletController.js'
+import { DepositRequest, GetBalance, GetDepositRequests, GetTransactions } from '../../Controller/WalletController.js'
 import { UserAuth } from '../../Middleware/UserAuth.js'
 
 export const WalletRouter = express.Router()
@@ -81,4 +81,54 @@ WalletRouter.get(
     '/GetDepositRequests',
     UserAuth,
     GetDepositRequests
+)
+/**
+ * @swagger
+ * /Api/Wallet/GetTransactions:
+ *  get: 
+ *      summary: Get Transactions of current user
+ *      tags:
+ *      - Wallet
+ *      responses:
+ *          '200':
+ *              description: Transactions of current user are successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      - in: query
+ *        name: limit
+ *        schema:
+ *          type: integer
+ *      - in: query
+ *        name: skip
+ *        schema:
+ *          type: integer
+ */
+WalletRouter.get(
+    '/GetTransactions',
+    UserAuth,
+    GetTransactions
+)
+/**
+ * @swagger
+ * /Api/Wallet/GetBalance:
+ *  get: 
+ *      summary: Get balance of current user
+ *      tags:
+ *      - Wallet
+ *      responses:
+ *          '200':
+ *              description: Balance of current user are successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ */
+WalletRouter.get(
+    '/GetBalance',
+    UserAuth,
+    GetBalance
 )

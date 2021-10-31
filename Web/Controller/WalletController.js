@@ -32,3 +32,28 @@ export const GetDepositRequests = async (req, res) => {
         return res.status(500).send(error.message)
     }
 }
+export const GetTransactions = async (req, res) => {
+    const { skip, limit } = req.query
+    const { id, fcmToken } = req.user
+    try {
+        let transactions = await WalletRepository.GetTransactions(skip, limit, id)
+        if (!transactions)
+            return res.status(500).send('Internal Server Error while getting the transactions')
+        return res.send(transactions)
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
+export const GetBalance = async (req, res) => {
+    const { id, fcmToken } = req.user
+    try {
+        let balance = await WalletRepository.GetBalance(id)
+        if (!balance)
+            return res.status(500).send('Internal Server Error while getting the balance')
+        return res.send(balance)
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}

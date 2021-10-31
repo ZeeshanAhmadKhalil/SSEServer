@@ -1,5 +1,7 @@
 import { validationResult } from "express-validator"
+import { CartRepository } from "../../Repository/CartRepository.js"
 import { ProductRepository } from "../../Repository/ProductRepository.js"
+import { WalletRepository } from "../../Repository/WalletRepository.js"
 
 export const AddProduct = async (req, res) => {
     const errors = validationResult(req)
@@ -172,6 +174,58 @@ export const LikeProduct = async (req, res) => {
             return res.send("Product is added to your wishlist")
         if (result == -1)
             return res.send("Product is removed from your wishlist")
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
+export const OrderProducts = async (req, res) => {
+    const errors = validationResult(req)
+    if (!errors.isEmpty())
+        return res.status(400).json({ errors: errors.array() })
+
+    const { isPaymentByHand, deliveryAddress } = req.body
+    const { id, fcmToken } = req.user
+
+    try {
+        let unavailibleProducts = await ProductRepository.CheckIfCartProductsAreAvailible(id)
+        if (unavailibleProducts.length != 0)
+            return res.status(400).send(unavailibleProducts) //* some products are not availible
+        let totalAmount = await CartRepository.TotalOfAllCartProcucts(id)
+        if (totalAmount == 0)
+            return res.status(400).send("There are no products in your cart")
+        let balance = await WalletRepository.GetBalance(id)
+        if (totalAmount > balance)
+            return res.status(400).send("You have insufficient balance")
+        if (!isPaymentByHand) {
+            let result = await WalletRepository.AddOrderTransactions(id)
+            if (!result)
+                return res.status(500).send("Error while adding transaction and updating wallet")
+        }
+        let result = await ProductRepository.OrderProducts(id, isPaymentByHand, deliveryAddress)
+        if (!result)
+            return res.status(500).send("Error while ordering the product")
+        return res.send("Your order is sucessfully placed")
+
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
+export const ChangeOrderStatus = async (req, res) => {
+    const { orderId, status } = req.body
+    const { id, fcmToken } = req.user
+    try {
+        let result = await ProductRepository.CheckIfOrderBelongsToUser(id, orderId)
+        if (!result)
+            return res.status(400).send('Order not found in your orders!')
+        let depositRequestStatus = await ProductRepository.GeOrderStatus(orderId)
+        if (depositRequestStatus != "Delivering")
+            return res.status(400).send('You already changed the status!')
+        let order = await ProductRepository.ChangeOrderStatus(orderId, status)
+        if (!order)
+            return res.status(500).send('Internal Server Error while changing status')
+        return res.send(`Order is marked as ${status} successfully!`)
     } catch (error) {
         console.error(error.message)
         return res.status(500).send(error.message)

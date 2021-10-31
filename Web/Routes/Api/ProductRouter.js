@@ -3,6 +3,7 @@ import { check, body } from 'express-validator'
 
 import {
     AddProduct,
+    ChangeOrderStatus,
     DeleteProduct,
     EditProduct,
     GetExchangeProducts,
@@ -12,6 +13,7 @@ import {
     GetProductById,
     GetSellingProducts,
     LikeProduct,
+    OrderProducts,
     SearchProducts
 } from '../../Controller/ProductController.js'
 import { UserAuth } from '../../Middleware/UserAuth.js'
@@ -76,7 +78,7 @@ ProductRouter.post(
                     throw new Error('Each product should have at least 3 images');
                 }
                 // Indicates the success of this synchronous custom validator
-                return true;    
+                return true;
             }),
         ]
     ],
@@ -116,6 +118,82 @@ ProductRouter.patch(
         ]
     ],
     LikeProduct
+)
+/**
+ * @swagger
+ * /Api/Product/OrderProducts:
+ *  patch: 
+ *      summary: Order all products in the cart
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Order is successfully placed
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      requestBody:
+ *          required: true
+ *          content: 
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          deliveryAddress:
+ *                              type: string
+ *                          isPaymentByHand:
+ *                              type: boolean
+ */
+ProductRouter.patch(
+    '/OrderProducts',
+    [
+        UserAuth,
+        [
+            check('isPaymentByHand', 'isPaymentByHand is required').not().isEmpty(),
+            check('deliveryAddress', 'deliveryAddress is required').not().isEmpty(),
+        ]
+    ],
+    OrderProducts,
+)
+/**
+ * @swagger
+ * /Api/Product/ChangeOrderStatus:
+ *  patch: 
+ *      summary: Change Deposit Request Status
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Deposit Request Status is successfully changed
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      requestBody:
+ *          required: true
+ *          content: 
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          orderId:
+ *                              type: string
+ *                          status:
+ *                              type: string
+ */
+ProductRouter.patch(
+    '/ChangeOrderStatus',
+    [
+        UserAuth,
+        [
+            check('orderId', 'orderId is required').not().isEmpty(),
+            check('status', 'status is required').not().isEmpty(),
+        ]
+    ],
+    ChangeOrderStatus
 )
 /**
  * @swagger

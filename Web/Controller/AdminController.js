@@ -22,7 +22,7 @@ export const ChangeDepositRequestStatus = async (req, res) => {
             return res.status(400).send('You already changed the status!')
         let result = await AdminRepository.ChangeDepositRequestStatus(depositRequestId, status)
         if (!result)
-            return res.status(500).send('Internal Server Error while getting changing status')
+            return res.status(500).send('Internal Server Error while changing status')
         return res.send(`Deposit requist is ${status} successfully!`)
     } catch (error) {
         console.error(error.message)

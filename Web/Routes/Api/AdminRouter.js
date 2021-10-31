@@ -8,35 +8,6 @@ export const AdminRouter = express.Router()
 
 /**
  * @swagger
- * /Api/Admin/GetDepositRequests:
- *  get: 
- *      summary: Get deposit requests 
- *      tags:
- *      - Admin
- *      responses:
- *          '200':
- *              description: Deposit requests are successfully fetched
- *      parameters:
- *      - in: header
- *        name: x-auth-token
- *        schema:
- *          type: string
- *      - in: query
- *        name: limit
- *        schema:
- *          type: integer
- *      - in: query
- *        name: skip
- *        schema:
- *          type: integer
- */
-AdminRouter.get(
-    '/GetDepositRequests',
-    AdminAuth,
-    GetDepositRequests
-)
-/**
- * @swagger
  * /Api/Admin/ChangeDepositRequestStatus:
  *  patch: 
  *      summary: Change Deposit Request Status
@@ -72,4 +43,33 @@ AdminRouter.patch(
         ]
     ],
     ChangeDepositRequestStatus
+)
+/**
+ * @swagger
+ * /Api/Admin/GetDepositRequests:
+ *  get: 
+ *      summary: Get deposit requests 
+ *      tags:
+ *      - Admin
+ *      responses:
+ *          '200':
+ *              description: Deposit requests are successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      - in: query
+ *        name: limit
+ *        schema:
+ *          type: integer
+ *      - in: query
+ *        name: skip
+ *        schema:
+ *          type: integer
+ */
+AdminRouter.get(
+    '/GetDepositRequests',
+    AdminAuth,
+    GetDepositRequests
 )
