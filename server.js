@@ -24,15 +24,15 @@ const options = {
             description: "Search, Scan & Exchange"
         },
         servers: [
+            {
+                url: "https://sseserver1.herokuapp.com"
+            }
             // {
             //     url: "http://192.168.10.4:6900"
             // },
             // {
             //     url: "http://localhost:6900"
             // },
-            {
-                url: "https://sseserver1.herokuapp.com"
-            }
         ],
     },
     apis: ["./Web/Routes/Api/*.js"]
