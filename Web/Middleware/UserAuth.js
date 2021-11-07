@@ -10,7 +10,7 @@ export const UserAuth = (req, res, next) => {
         const decoded = jwt.verify(
             token,
             "myTokenSecretKey"
-            // config.get('jwtSecret')
+            // config.get('jwtSecret') //!error not working
         )
         console.log(decoded)
         req.user = decoded.user
