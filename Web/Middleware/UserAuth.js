@@ -7,7 +7,11 @@ export const UserAuth = (req, res, next) => {
     if (!token)
         return res.status(410).json({ msg: "You are not authorized to access this feature" })
     try {
-        const decoded = jwt.verify(token, config.get('jwtSecret'))
+        const decoded = jwt.verify(
+            token,
+            "myTokenSecretKey"
+            // config.get('jwtSecret')
+        )
         console.log(decoded)
         req.user = decoded.user
         next()
