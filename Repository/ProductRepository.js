@@ -517,5 +517,14 @@ export const ProductRepository = { //todo: acending order by created on while fe
         orderModel.orderStatus = mongoose.Types.ObjectId(orderStatusModel._id)
         let order = await orderModel.save()
         return order;
-    }
+    },
+    GetConditions: async () => {
+        return await ConditionModel.find({}).select()
+    },
+    GetCategories: async () => {
+        return await CategoryModel.find({}).select()
+    },
+    GetCities: async () => {
+        return await CityModel.find({}).select()
+    },
 }

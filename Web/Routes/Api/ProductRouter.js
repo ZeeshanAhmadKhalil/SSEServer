@@ -6,6 +6,9 @@ import {
     ChangeOrderStatus,
     DeleteProduct,
     EditProduct,
+    GetCategories,
+    GetCities,
+    GetConditions,
     GetExchangeProducts,
     GetMostlyLikedProducts,
     GetMyProducts,
@@ -389,6 +392,69 @@ ProductRouter.get(
     '/GetMostlyLikedProducts',
     UserAuth,
     GetMostlyLikedProducts
+)
+/**
+ * @swagger
+ * /Api/Product/GetConditions:
+ *  get: 
+ *      summary: Get Conditions
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Conditions are successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ */
+ProductRouter.get(
+    '/GetConditions',
+    UserAuth,
+    GetConditions
+)
+/**
+ * @swagger
+ * /Api/Product/GetCategories:
+ *  get: 
+ *      summary: Get Categories
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Categories are successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ */
+ProductRouter.get(
+    '/GetCategories',
+    UserAuth,
+    GetCategories
+)
+/**
+ * @swagger
+ * /Api/Product/GetCities:
+ *  get: 
+ *      summary: Get Cities
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Cities are successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ */
+ProductRouter.get(
+    '/GetCities',
+    UserAuth,
+    GetCities
 )
 /**
  * @swagger

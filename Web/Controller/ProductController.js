@@ -231,3 +231,36 @@ export const ChangeOrderStatus = async (req, res) => {
         return res.status(500).send(error.message)
     }
 }
+export const GetConditions = async (req, res) => {
+    try {
+        let conditions = await ProductRepository.GetConditions()
+        if (!conditions)
+            return res.status(500).send('Internal Server Error while getting the conditions')
+        return res.send(conditions)
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
+export const GetCategories = async (req, res) => {
+    try {
+        let categories = await ProductRepository.GetCategories()
+        if (!categories)
+            return res.status(500).send('Internal Server Error while getting the categories')
+        return res.send(categories)
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
+export const GetCities = async (req, res) => {
+    try {
+        let cities = await ProductRepository.GetCities()
+        if (!cities)
+            return res.status(500).send('Internal Server Error while getting the cities')
+        return res.send(cities)
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
