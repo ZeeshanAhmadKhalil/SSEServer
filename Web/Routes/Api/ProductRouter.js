@@ -49,6 +49,8 @@ export const ProductRouter = express.Router()
  *                              type: string
  *                          price:
  *                              type: string
+ *                          quantity:
+ *                              type: string
  *                          forExchange:
  *                              type: string
  *                          description:
