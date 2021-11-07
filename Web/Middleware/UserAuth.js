@@ -10,6 +10,6 @@ export const UserAuth = (req, res, next) => {
         req.user = decoded.user
         next()
     } catch (error) {
-        return res.status(410).json({ msg: error })
+        return res.status(410).json(error)
     }
 }
