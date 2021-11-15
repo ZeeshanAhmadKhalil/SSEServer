@@ -72,6 +72,6 @@ app.listen(
     // `192.168.10.6`, //todo: home PTCL2
     // `192.168.10.4`, //todo: home PTCL3
     // `192.168.10.9`, //todo: home PTCL4
-    `192.168.43.249`, //todo: home Zong4G 
+    // `192.168.43.249`, //todo: home Zong4G 
     () => console.info(`Server is running on port ${PORT}`)
 )
