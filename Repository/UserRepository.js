@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import gravatar from 'gravatar'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
@@ -5,6 +6,8 @@ import config from 'config'
 
 import { UserModel } from "../Model/UserModal.js"
 import { RoleModel } from '../Model/RoleModel.js'
+import { ProductModel } from '../Model/ProductModel.js'
+import { WishlistModel } from "../Model/WishlistModel.js";
 
 
 export const UserRepository = {
@@ -74,5 +77,14 @@ export const UserRepository = {
             { expiresIn: 3600000 } // ! use 3600 in production
         )
         return token
-    }
+    },
+    GetUserById: async (userId) => {
+        return await UserModel.findById(userId).select()
+    },
+    GetTotalProductsPostedByUser: async (userId) => {
+        return await ProductModel.count({ user: mongoose.Types.ObjectId(userId) })
+    },
+    GetTotalProductsInWishlistOfUser: async (userId) => {
+        return await WishlistModel.count({ user: mongoose.Types.ObjectId(userId) })
+    },
 }

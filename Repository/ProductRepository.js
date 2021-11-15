@@ -188,7 +188,6 @@ export const ProductRepository = { //todo: acending order by created on while fe
                         "createdOn": 0,
                         "city": 0,
                         "condition": 0,
-                        "user": 0,
                         "__v": 0,
                     }
                 },
@@ -200,6 +199,72 @@ export const ProductRepository = { //todo: acending order by created on while fe
         model.map((item, key) => {
             modelTemp[key].isLiked = item.isLiked != undefined ? true : false
             modelTemp[key].quantityInCart = item.quantityInCart != undefined ? item.quantityInCart.quantity : 0
+        })
+        return modelTemp
+    },
+    GetProductsByCategory: async (categoryId, currentProductId, id) => {
+        let model = await ProductModel
+            .aggregate([
+                {
+                    $lookup: {
+                        from: "wishlists", // * collection name in db
+                        localField: "_id", // todo: comment this if you want to uncomment pipeline
+                        foreignField: "product",
+                        as: "isLiked",
+                    },
+                },
+                {
+                    $lookup: {
+                        from: "carts", // * collection name in db
+                        localField: "_id",
+                        foreignField: "product",
+                        as: "quantityInCart"
+                    }
+                },
+                {
+                    $addFields: {
+                        "isLiked": {
+                            $arrayElemAt: [
+                                {
+                                    $filter: {
+                                        input: '$isLiked',
+                                        as: 'isLiked',
+                                        cond: {
+                                            $eq: ['$$isLiked.user', mongoose.Types.ObjectId(id)]
+                                        }
+                                    }
+                                }, 0 // * arrayElemAt index 0
+                            ]
+                        }
+                    }
+                },
+                {
+                    $match: {
+                        $and: [
+                            { category: mongoose.Types.ObjectId(categoryId) },
+                            { _id: { $ne: mongoose.Types.ObjectId(currentProductId) } }
+                        ]
+                    }
+                },
+                {
+                    $project: {
+                        "quantity": 0,
+                        "forExchange": 0,
+                        "isDeleted": 0,
+                        "createdOn": 0,
+                        "category": 0,
+                        "city": 0,
+                        "condition": 0,
+                        "__v": 0,
+                    }
+                },
+                { "$limit": 5 },
+                { "$skip": 0 },
+            ]).exec()
+        model = await ProductModel.populate(model, { path: 'media' })
+        let modelTemp = model
+        model.map((item, key) => {
+            modelTemp[key].isLiked = item.isLiked != undefined ? true : false
         })
         return modelTemp
     },
@@ -281,7 +346,6 @@ export const ProductRepository = { //todo: acending order by created on while fe
                         "category": 0,
                         "city": 0,
                         "condition": 0,
-                        "user": 0,
                         "__v": 0,
                     }
                 },
@@ -334,7 +398,6 @@ export const ProductRepository = { //todo: acending order by created on while fe
                         "category": 0,
                         "city": 0,
                         "condition": 0,
-                        "user": 0,
                         "__v": 0,
                     }
                 },

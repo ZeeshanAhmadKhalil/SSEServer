@@ -14,6 +14,7 @@ import {
     GetMyProducts,
     GetMyWishlist,
     GetProductById,
+    GetProductsByCategory,
     GetSellingProducts,
     LikeProduct,
     OrderProducts,
@@ -286,6 +287,35 @@ ProductRouter.get(
     '/GetSellingProducts',
     UserAuth,
     GetSellingProducts
+)
+/**
+ * @swagger
+ * /Api/Product/GetProductsByCategory:
+ *  get: 
+ *      summary: Get selling products 
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Selling products are successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      - in: query
+ *        name: categoryId
+ *        schema:
+ *          type: string
+ *      - in: query
+ *        name: currentProductId
+ *        schema:
+ *          type: string
+ */
+ProductRouter.get(
+    '/GetProductsByCategory',
+    UserAuth,
+    GetProductsByCategory
 )
 /**
  * @swagger

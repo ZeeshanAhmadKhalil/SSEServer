@@ -1,7 +1,7 @@
 import express from 'express'
 import { check } from 'express-validator'
 
-import { Login, Logout, Register } from '../../Controller/UserController.js'
+import { GetUserById, Login, Logout, Register } from '../../Controller/UserController.js'
 import { UserAuth } from '../../Middleware/UserAuth.js'
 
 export const UserRouter = express.Router()
@@ -26,6 +26,31 @@ UserRouter.get(
     '/Logout',
     UserAuth,
     Logout
+)
+/**
+ * @swagger
+ * /Api/User/GetUserById:
+ *  get: 
+ *      summary: Get user by id
+ *      tags:
+ *      - User
+ *      responses:
+ *          '200':
+ *              description: User is sucessfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      - in: query
+ *        name: userId
+ *        schema:
+ *          type: string
+ */
+UserRouter.get(
+    '/GetUserById',
+    UserAuth,
+    GetUserById
 )
 /**
  * @swagger

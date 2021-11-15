@@ -64,3 +64,19 @@ export const Logout = async (req, res) => {
         return res.status(500).send(error.message)
     }
 }
+export const GetUserById = async (req, res) => {
+    const { id, fcmToken } = req.user
+    const { userId } = req.query
+
+    try {
+        let user = await UserRepository.GetUserById(userId)
+        if (!user)
+            return res.status(400).json('Error while getting user')
+        let totalProducts = await UserRepository.GetTotalProductsPostedByUser(userId)
+        let totalProductsInWishlist = await UserRepository.GetTotalProductsInWishlistOfUser(userId)
+        return res.json({ user, totalProducts, totalProductsInWishlist })
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
