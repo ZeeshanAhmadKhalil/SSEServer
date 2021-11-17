@@ -37,6 +37,20 @@ export const GetProductById = async (req, res) => {
         return res.status(500).send(error.message)
     }
 }
+export const SearchProductsByKeywords = async (req, res) => {
+    const { skip, limit } = req.query
+    const { keywords } = req.body
+    const { id, fcmToken } = req.user
+    try {
+        let products = await ProductRepository.SearchProductsByKeywords(skip, limit, keywords, id)
+        if (!products)
+            return res.status(500).send('Internal Server Error while getting the products')
+        return res.send(products)
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
 export const SearchProducts = async (req, res) => {
     const { skip, limit, searchQuery } = req.query
     const { id, fcmToken } = req.user

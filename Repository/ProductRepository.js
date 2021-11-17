@@ -202,6 +202,110 @@ export const ProductRepository = { //todo: acending order by created on while fe
         })
         return modelTemp
     },
+    SearchProductsByKeywords: async (skip, limit, keywords, id) => {
+        let keywordsSliced = keywords.slice(0, 4)
+        let keywordsString = keywordsSliced.join('|')
+
+        let searchRegex = new RegExp(keywordsString, "i")
+        let model = await ProductModel
+            .aggregate([
+                {
+                    $lookup: {
+                        from: "wishlists", // * collection name in db
+                        localField: "_id",
+                        foreignField: "product",
+                        as: "isLiked",
+                    },
+                },
+                {
+                    $lookup: {
+                        from: "carts", // * collection name in db
+                        localField: "_id",
+                        foreignField: "product",
+                        as: "quantityInCart"
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "categories", // * collection name in db
+                        localField: "category",
+                        foreignField: "_id",
+                        as: "category"
+                    }
+                },
+                {
+                    $addFields: {
+                        "category": {
+                            $arrayElemAt: ['$category', 0]
+                        }
+                    }
+                },
+                {
+                    $addFields: {
+                        "isLiked": {
+                            $arrayElemAt: [
+                                {
+                                    $filter: {
+                                        input: '$isLiked',
+                                        as: 'isLiked',
+                                        cond: {
+                                            $eq: ['$$isLiked.user', mongoose.Types.ObjectId(id)]
+                                        }
+                                    }
+                                }, 0 // * arrayElemAt index 0
+                            ]
+                        }
+                    }
+                },
+                {
+                    $addFields: {
+                        "quantityInCart": {
+                            $arrayElemAt: [
+                                {
+                                    $filter: {
+                                        input: '$quantityInCart',
+                                        as: 'quantityInCart',
+                                        cond: {
+                                            $eq: ['$$quantityInCart.user', mongoose.Types.ObjectId(id)]
+                                        }
+                                    }
+                                }, 0 // * arrayElemAt index 0
+                            ]
+                        }
+                    }
+                },
+                {
+                    $match: {
+                        $or:
+                            [
+                                { productName: searchRegex },
+                                { description: searchRegex },
+                                { "category.categoryName": searchRegex },
+                            ]
+                    }
+                },
+                {
+                    $project: {
+                        "quantity": 0,
+                        "forExchange": 0,
+                        "isDeleted": 0,
+                        "createdOn": 0,
+                        "city": 0,
+                        "condition": 0,
+                        "__v": 0,
+                    }
+                },
+                { "$limit": limit == undefined ? 1000000 : parseInt(skip + limit) },
+                { "$skip": skip == undefined ? 0 : parseInt(skip) },
+            ]).exec()
+        model = await ProductModel.populate(model, { path: 'media' })
+        let modelTemp = model
+        model.map((item, key) => {
+            modelTemp[key].isLiked = item.isLiked != undefined ? true : false
+            modelTemp[key].quantityInCart = item.quantityInCart != undefined ? item.quantityInCart.quantity : 0
+        })
+        return modelTemp
+    },
     GetProductsByCategory: async (categoryId, currentProductId, id) => {
         let model = await ProductModel
             .aggregate([
