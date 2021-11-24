@@ -36,8 +36,6 @@ export const WalletRouter = express.Router()
  *                              type: string
  *                          amount:
  *                              type: string
- *                          depositedOn:
- *                              type: string
  */
 WalletRouter.post(
     '/DepositRequest',
@@ -48,7 +46,6 @@ WalletRouter.post(
             check('accountNumber', 'Account number is required').not().isEmpty(),
             check('accountTitle', 'Account title is required').not().isEmpty(),
             check('amount', 'Amount should be a number').isNumeric(),
-            check('depositedOn', 'Deposit Date is required').not().isEmpty(),
         ]
     ],
     DepositRequest

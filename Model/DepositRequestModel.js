@@ -17,10 +17,6 @@ const DepositRequestSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
-    depositedOn: { //* when user transferred money to admin account
-        type: Date,
-        required: true,
-    },
     createdOn: { //* when entry is created
         type: Date,
         default: Date.now()

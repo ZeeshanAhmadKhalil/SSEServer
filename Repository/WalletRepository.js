@@ -8,13 +8,12 @@ import { TransactionModel } from "../Model/TransactionModel.js";
 import { TransactionTypeModel } from "../Model/TransactionTypeModel.js";
 
 export const WalletRepository = {
-    DepositRequest: async (bankName, accountNumber, accountTitle, amount, depositedOn, id) => {
+    DepositRequest: async (bankName, accountNumber, accountTitle, amount, id) => {
         let depositRequestModel = new DepositRequestModel({
             bankName,
             accountNumber,
             accountTitle,
             amount,
-            depositedOn,
             depositRequestStatus: mongoose.Types.ObjectId("614f733793e00a99cca623aa"), // * pending status
             user: mongoose.Types.ObjectId(id),
             createdOn: Date.now()

@@ -6,11 +6,11 @@ export const DepositRequest = async (req, res) => {
     if (!errors.isEmpty())
         return res.status(400).json({ errors: errors.array() })
 
-    const { bankName, accountNumber, accountTitle, amount, depositedOn, } = req.body
+    const { bankName, accountNumber, accountTitle, amount, } = req.body
     const { id, fcmToken } = req.user
 
     try {
-        let depositRequest = await WalletRepository.DepositRequest(bankName, accountNumber, accountTitle, amount, depositedOn, id)
+        let depositRequest = await WalletRepository.DepositRequest(bankName, accountNumber, accountTitle, amount, id)
         if (!depositRequest)
             return res.status(500).send('Internal Server Error while adding the deposit request')
         return res.send(depositRequest)
