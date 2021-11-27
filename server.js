@@ -44,7 +44,7 @@ const options = {
     apis: ["./Web/Routes/Api/*.js"]
 }
 const specs = swaggerJSDoc(options);
-app.options('*', cors({ credentials: true, origin: true })) // include before other routes
+// app.options('*', cors({ credentials: true, origin: true })) // include before other routes
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(specs));
 // router.use('/api-docs', swaggerUI.serve);
 // router.get('/api-docs', swaggerUI.setup(swaggerDocs));
@@ -53,6 +53,7 @@ app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(specs));
 ConnectDB()
 
 // * Init Middleware
+app.use(cors()) //* only this working
 app.use(express.json({ extended: false }))
 app.get(
     '/',
