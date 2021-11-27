@@ -31,20 +31,20 @@ const options = {
         },
         servers: [
             {
+                url: "http://localhost:6900"
+            },
+            {
                 url: "http://192.168.43.249:6900"
             },
             {
                 url: "https://sseserver1.herokuapp.com"
-            },
-            {
-                url: "http://localhost:6900"
             },
         ],
     },
     apis: ["./Web/Routes/Api/*.js"]
 }
 const specs = swaggerJSDoc(options);
-// app.options('*', cors()) // include before other routes
+app.options('*', cors()) // include before other routes
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(specs));
 // router.use('/api-docs', swaggerUI.serve);
 // router.get('/api-docs', swaggerUI.setup(swaggerDocs));
@@ -54,14 +54,17 @@ ConnectDB()
 
 // * Init Middleware
 app.use(express.json({ extended: false }))
-app.get('/', cors(corsOptions), (req, res) => {
-    var hostname = req.headers.host;
-    res.writeHead(302, {
-        'Location': `/api-docs`
-        //add other headers here...
-    });
-    res.end();
-})
+app.get(
+    '/',
+    // cors(corsOptions),
+    (req, res) => {
+        var hostname = req.headers.host;
+        res.writeHead(302, {
+            'Location': `/api-docs`
+            //add other headers here...
+        });
+        res.end();
+    })
 
 // * Define Routes
 
