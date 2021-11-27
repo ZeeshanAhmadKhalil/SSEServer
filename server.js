@@ -53,7 +53,7 @@ ConnectDB()
 
 // * Init Middleware
 app.use(express.json({ extended: false }))
-app.get('/', cors(corsOptions), (req, res) => {
+app.get('/', cors(), (req, res) => {
     var hostname = req.headers.host;
     res.writeHead(302, {
         'Location': `/api-docs`
