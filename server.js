@@ -1,4 +1,5 @@
 import express from 'express'
+import cors from 'cors'
 import swaggerJSDoc from 'swagger-jsdoc'
 import swaggerUI from 'swagger-ui-express'
 
@@ -13,6 +14,11 @@ import { WalletRouter } from './Web/Routes/Api/WalletRouter.js'
 
 const app = express()
 const router = express.Router()
+
+var corsOptions = {
+    origin: '*',
+    optionsSuccessStatus: 200 //* some legacy browsers (IE11, various SmartTVs) choke on 204
+}
 
 // * Swagger Configuration  
 const options = {
@@ -47,7 +53,7 @@ ConnectDB()
 
 // * Init Middleware
 app.use(express.json({ extended: false }))
-app.get('/', (req, res) => {
+app.get('/', cors(corsOptions), (req, res) => {
     var hostname = req.headers.host;
     res.writeHead(302, {
         'Location': `/api-docs`
