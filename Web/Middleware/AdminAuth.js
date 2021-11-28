@@ -6,12 +6,16 @@ export const AdminAuth = (req, res, next) => {
     if (!token)
         return res.status(410).json({ msg: "You are not authorized to access this feature" })
     try {
-        const decoded = jwt.verify(token, "myTokenSecretKey")
+        const decoded = jwt.verify(
+            token,
+            "myTokenSecretKey"
+            // config.get('jwtSecret') //!error not working
+        )
         if (decoded.user.roleName != "Admin")
             return res.status(410).json({ msg: "Only Admins are authorized to access this feature" })
         req.user = decoded.user
         next()
     } catch (error) {
-        return res.status(410).json({ msg: "An unauthorized access is detected" })
+        return res.status(410).json({ msg: error.message })
     }
 }
