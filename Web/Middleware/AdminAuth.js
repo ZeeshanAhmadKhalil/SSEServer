@@ -16,6 +16,8 @@ export const AdminAuth = (req, res, next) => {
         req.user = decoded.user
         next()
     } catch (error) {
+        console.error("ERROR")
+        console.error(error)
         return res.status(410).json({ msg: error.message })
     }
 }
