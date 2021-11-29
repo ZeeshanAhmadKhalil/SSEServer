@@ -49,9 +49,7 @@ export const GetBalance = async (req, res) => {
     const { id, fcmToken } = req.user
     try {
         let balance = await WalletRepository.GetBalance(id)
-        if (!balance)
-            return res.status(500).send('Internal Server Error while getting the balance')
-        return res.send(balance)
+        return res.send({ data: balance })
     } catch (error) {
         console.error(error.message)
         return res.status(500).send(error.message)

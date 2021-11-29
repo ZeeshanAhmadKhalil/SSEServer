@@ -20,7 +20,7 @@ export const AddProductToCart = async (req, res) => {
             return res.status(401).send("You can not add your own product in the cart")
         let cart = await CartRepository.AddProductToCart(productId, id)
         if (!cart)
-            return res.status(400).send('You already added all quantity in the cart')
+            return res.status(400).send('No more items availible')
         return res.send(cart)
     } catch (error) {
         console.error(error.message)

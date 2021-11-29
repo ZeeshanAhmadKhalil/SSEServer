@@ -52,6 +52,16 @@ export const ProductRepository = { //todo: acending order by created on while fe
     GetProductById: async (productId) => {
         return await ProductModel.findById(productId).populate('category city condition user media').exec()
     },
+    GetOrderById: async (orderId) => {
+        return await OrderProductModel.find({ order: mongoose.Types.ObjectId(orderId) })
+            .populate('product order')
+            .populate({ // * deep populate
+                path: 'product',
+                populate: {
+                    path: 'media'
+                }
+            }).exec()
+    },
     EditProduct: async (productId, productName, price, quantity, forExchange, description, categoryId, cityId, conditionId, images) => {
         let model = await ProductModel.findOne({ _id: productId }).select()
         if (!model)
@@ -305,6 +315,49 @@ export const ProductRepository = { //todo: acending order by created on while fe
             modelTemp[key].quantityInCart = item.quantityInCart != undefined ? item.quantityInCart.quantity : 0
         })
         return modelTemp
+    },
+    GetMyOrders: async (skip, limit, id) => {
+        let model = await OrderModel.aggregate([
+            { $match: { user: mongoose.Types.ObjectId(id) } }, //todo: do this for all $match for faster fetch
+            {
+                $lookup: {
+                    from: 'orderproducts',
+                    localField: '_id',
+                    foreignField: 'order',
+                    as: 'orderproducts'
+                },
+            },
+            {
+                $lookup: {
+                    from: 'products',
+                    localField: 'orderproducts.product',
+                    foreignField: '_id',
+                    as: 'productDetails'
+                },
+            },
+            {
+                $lookup: {
+                    from: 'media',
+                    localField: 'productDetails.media',
+                    foreignField: '_id',
+                    as: 'media'
+                },
+            },
+            {
+                $addFields: {
+                    "totalProducts": { $size: "$orderproducts" }
+                },
+            },
+            // { //! $productDetails.price returning array, needed current index
+            //     $addFields: {
+            //         "totalAmount": { $sum: { $multiply: ["$productDetails.price", "$orderproducts.quantity"] } }
+            //     },
+            // },
+            { "$limit": limit == undefined ? 1000000 : parseInt(skip + limit) },
+            { "$skip": skip == undefined ? 0 : parseInt(skip) },
+        ])
+        // model = await OrderModel.populate(model, { path: 'productDetails', populate: { path: 'media' } })
+        return model
     },
     GetProductsByCategory: async (categoryId, currentProductId, id) => {
         let model = await ProductModel
@@ -630,7 +683,7 @@ export const ProductRepository = { //todo: acending order by created on while fe
         for (const element of cartModel) {
             var product = await ProductModel.findById(element.product).select()
             if (product.quantity < element.quantity)
-                unavailibleProducts.push(`${parseInt(element.quantity.quantity - product.quantity)} ${product.productName}`)
+                unavailibleProducts.push(`${parseInt(element.quantity - product.quantity)} ${product.productName}`)
         }
         return unavailibleProducts
     },

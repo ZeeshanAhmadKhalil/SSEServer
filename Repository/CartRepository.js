@@ -27,6 +27,8 @@ export const CartRepository = { //todo: dont add product in cart if its your own
         } else {
             let user = await UserModel.findById(id).select()
             let product = await ProductModel.findById(productId).select()
+            if (product.quantity == 0)
+                return false
             let cartModel = new CartModel({
                 product,
                 user,

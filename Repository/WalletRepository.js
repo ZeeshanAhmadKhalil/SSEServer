@@ -95,6 +95,8 @@ export const WalletRepository = {
     },
     GetBalance: async (id) => {
         var model = await WalletModel.findOne({ user: id }).select()
-        return model.balance
+        if (model)
+            return model.balance
+        return 0
     },
 }

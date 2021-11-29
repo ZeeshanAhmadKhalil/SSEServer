@@ -11,8 +11,10 @@ import {
     GetConditions,
     GetExchangeProducts,
     GetMostlyLikedProducts,
+    GetMyOrders,
     GetMyProducts,
     GetMyWishlist,
+    GetOrderById,
     GetProductById,
     GetProductsByCategory,
     GetSellingProducts,
@@ -229,6 +231,31 @@ ProductRouter.get(
 )
 /**
  * @swagger
+ * /Api/Product/GetOrderById:
+ *  get: 
+ *      summary: Get Order details
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Order details are successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      - in: query
+ *        name: orderId
+ *        schema:
+ *          type: string
+ */
+ProductRouter.get(
+    '/GetOrderById',
+    UserAuth,
+    GetOrderById
+)
+/**
+ * @swagger
  * /Api/Product/SearchProducts:
  *  get: 
  *      summary: Search product by name, description and category
@@ -415,6 +442,35 @@ ProductRouter.get(
     '/GetMyWishlist',
     UserAuth,
     GetMyWishlist
+)
+/**
+ * @swagger
+ * /Api/Product/GetMyOrders:
+ *  get: 
+ *      summary: Get My orders 
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: My orders are successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      - in: query
+ *        name: limit
+ *        schema:
+ *          type: integer
+ *      - in: query
+ *        name: skip
+ *        schema:
+ *          type: integer
+ */
+ProductRouter.get(
+    '/GetMyOrders',
+    UserAuth,
+    GetMyOrders
 )
 /**
  * @swagger

@@ -37,6 +37,20 @@ export const GetProductById = async (req, res) => {
         return res.status(500).send(error.message)
     }
 }
+export const GetOrderById = async (req, res) => {
+    const { orderId } = req.query
+    const { id, fcmToken } = req.user
+
+    try {
+        let orderDetail = await ProductRepository.GetOrderById(orderId)
+        if (!orderDetail)
+            return res.status(500).send('Internal Server Error while getting the order detail')
+        return res.send(orderDetail)
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
 export const SearchProductsByKeywords = async (req, res) => {
     const { skip, limit } = req.query
     const { keywords } = req.body
@@ -110,6 +124,19 @@ export const GetMyWishlist = async (req, res) => {
         let product = await ProductRepository.GetMyWishlist(skip, limit, id)
         if (!product)
             return res.status(500).send('Internal Server Error while getting the product')
+        return res.send(product)
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
+export const GetMyOrders = async (req, res) => {
+    const { skip, limit } = req.query
+    const { id, fcmToken } = req.user
+    try {
+        let product = await ProductRepository.GetMyOrders(skip, limit, id)
+        if (!product)
+            return res.status(500).send('Internal Server Error while getting the orders')
         return res.send(product)
     } catch (error) {
         console.error(error.message)
@@ -220,10 +247,10 @@ export const OrderProducts = async (req, res) => {
             return res.status(400).send(unavailibleProducts) //* some products are not availible
         let totalAmount = await CartRepository.TotalOfAllCartProcucts(id)
         if (totalAmount == 0)
-            return res.status(400).send("There are no products in your cart")
+            return res.status(400).send({ errorMsg: "There are no products in your cart" })
         let balance = await WalletRepository.GetBalance(id)
         if (totalAmount > balance)
-            return res.status(400).send("You have insufficient balance")
+            return res.status(400).send({ errorMsg: "You have insufficient balance" })
         if (!isPaymentByHand) {
             let result = await WalletRepository.AddOrderTransactions(id)
             if (!result)
@@ -232,7 +259,7 @@ export const OrderProducts = async (req, res) => {
         let result = await ProductRepository.OrderProducts(id, isPaymentByHand, deliveryAddress)
         if (!result)
             return res.status(500).send("Error while ordering the product")
-        return res.send("Your order is sucessfully placed")
+        return res.send({ msg: "Your order is sucessfully placed" })
 
     } catch (error) {
         console.error(error.message)
