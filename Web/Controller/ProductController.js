@@ -91,6 +91,32 @@ export const GetProductsByCategory = async (req, res) => {
         return res.status(500).send(error.message)
     }
 }
+export const GetRequestingExchanges = async (req, res) => {
+    const { } = req.query
+    const { id, fcmToken } = req.user
+    try {
+        let exchanges = await ProductRepository.GetRequestingExchanges(id)
+        if (!exchanges)
+            return res.status(500).send('Internal Server Error while getting the exchanges')
+        return res.send(exchanges)
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
+export const GetRequestedExchanges = async (req, res) => {
+    const { } = req.query
+    const { id, fcmToken } = req.user
+    try {
+        let exchanges = await ProductRepository.GetRequestedExchanges(id)
+        if (!exchanges)
+            return res.status(500).send('Internal Server Error while getting the exchanges')
+        return res.send(exchanges)
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
 export const GetSellingProducts = async (req, res) => {
     const { skip, limit } = req.query
     const { id, fcmToken } = req.user
@@ -148,6 +174,19 @@ export const GetMyProducts = async (req, res) => {
     const { id, fcmToken } = req.user
     try {
         let product = await ProductRepository.GetMyProducts(skip, limit, id)
+        if (!product)
+            return res.status(500).send('Internal Server Error while getting the product')
+        return res.send(product)
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
+export const GetProductsToExchange = async (req, res) => {
+    const { skip, limit, categoryId } = req.query
+    const { id, fcmToken } = req.user
+    try {
+        let product = await ProductRepository.GetProductsToExchange(skip, limit, id, categoryId)
         if (!product)
             return res.status(500).send('Internal Server Error while getting the product')
         return res.send(product)
@@ -260,6 +299,32 @@ export const OrderProducts = async (req, res) => {
         if (!result)
             return res.status(500).send("Error while ordering the product")
         return res.send({ msg: "Your order is sucessfully placed" })
+
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
+export const ExchangeProducts = async (req, res) => {
+    const errors = validationResult(req)
+    if (!errors.isEmpty())
+        return res.status(400).json({ errors: errors.array() })
+
+    const { isPaymentByHand, deliveryAddress, requestedProduct, requestingProduct } = req.body
+    const { id, fcmToken } = req.user
+
+    try {
+        let alreadyRequesting = await ProductRepository.CheckifAlreadingRequesting(requestingProduct)
+        if (alreadyRequesting.length != 0)
+            return res.status(400).send({ data: "Selected product is already a in an exchange!" })
+        let amountDifference = await ProductRepository.GetPriceDifference(requestedProduct, requestingProduct)
+        let balance = await WalletRepository.GetBalance(id)
+        if (amountDifference > balance)
+            return res.status(400).send({ data: "You have insufficient balance" })
+        let result = await ProductRepository.ExchangeProducts(isPaymentByHand, deliveryAddress, requestedProduct, requestingProduct)
+        if (!result)
+            return res.status(500).send("Error while ordering the product")
+        return res.send({ data: "Your product is succesfully added for exchange" })
 
     } catch (error) {
         console.error(error.message)

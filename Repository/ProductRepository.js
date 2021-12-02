@@ -3,6 +3,7 @@ import { CartModel } from "../Model/CartModel.js";
 import { CategoryModel } from "../Model/CategoryModel.js";
 import { CityModel } from "../Model/CityModel.js";
 import { ConditionModel } from "../Model/ConditionModel.js"
+import { ExchangeModel } from "../Model/ExchangeModel,.js";
 import { MediaModel } from "../Model/MediaModel.js";
 import { OrderModel } from "../Model/OrderModel.js";
 import { OrderProductModel } from "../Model/OrderProductModel.js";
@@ -614,6 +615,110 @@ export const ProductRepository = { //todo: acending order by created on while fe
     },
     GetMyProducts: async (skip, limit, id) => {
         return await ProductModel.find({ user: mongoose.Types.ObjectId(id) }).populate('media').limit(limit == undefined ? 1000000 : parseInt(skip + limit)).skip(skip == undefined ? 0 : parseInt(skip)).select()
+    },
+    GetProductsToExchange: async (skip, limit, id, categoryId) => {
+        return await ProductModel.find({ user: mongoose.Types.ObjectId(id), category: mongoose.Types.ObjectId(categoryId), forExchange: true })
+            .populate('media')
+            .limit(limit == undefined ? 1000000 : parseInt(skip + limit))
+            .skip(skip == undefined ? 0 : parseInt(skip))
+            .select()
+    },
+    GetPriceDifference: async (requestedProduct, requestingProduct) => {
+        var model1 = await ProductModel.findById(requestedProduct).select()
+        var model2 = await ProductModel.findById(requestingProduct).select()
+        return model1.price - model2.price
+    },
+    ExchangeProducts: async (isPaymentByHand, deliveryAddress, requestedProduct, requestingProduct) => {
+        let exchangeModel = new ExchangeModel({
+            isPaymentByHand,
+            deliveryAddress,
+            isExchanged: false,
+            requestingProduct,
+            requestedProduct,
+        })
+        return await exchangeModel.save()
+    },
+    GetRequestedExchanges: async (id) => {
+        let models = await ExchangeModel.aggregate([
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "requestingProduct",
+                    foreignField: "_id",
+                    as: "requestingProduct",
+                }
+            },
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "requestedProduct",
+                    foreignField: "_id",
+                    as: "requestedProduct",
+                }
+            },
+            {
+                $lookup: {
+                    from: "media",
+                    localField: "requestingProduct.media",
+                    foreignField: "_id",
+                    as: "requestingMedia",
+                }
+            },
+            {
+                $lookup: {
+                    from: "media",
+                    localField: "requestedProduct.media",
+                    foreignField: "_id",
+                    as: "requestedMedia",
+                }
+            },
+            { $match: { "requestedProduct.user": mongoose.Types.ObjectId(id) } },
+        ]).exec()
+        // model = await WishlistModel.populate(model, { path: 'product', populate: { path: 'media' } })
+        models = await ExchangeModel.populate(models, { path: 'product', populate: { path: 'media' } })
+        models = await ExchangeModel.populate(models, { path: 'product', populate: { path: 'media' } })
+        return models
+    },
+    GetRequestingExchanges: async (id) => {
+        let models = await ExchangeModel.aggregate([
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "requestingProduct",
+                    foreignField: "_id",
+                    as: "requestingProduct",
+                }
+            },
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "requestedProduct",
+                    foreignField: "_id",
+                    as: "requestedProduct",
+                }
+            },
+            {
+                $lookup: {
+                    from: "media",
+                    localField: "requestingProduct.media",
+                    foreignField: "_id",
+                    as: "requestingMedia",
+                }
+            },
+            {
+                $lookup: {
+                    from: "media",
+                    localField: "requestedProduct.media",
+                    foreignField: "_id",
+                    as: "requestedMedia",
+                }
+            },
+            { $match: { "requestingProduct.user": mongoose.Types.ObjectId(id) } },
+        ]).exec()
+        return models
+    },
+    CheckifAlreadingRequesting: async (requestingProduct) => {
+        return await ExchangeModel.find({ requestingProduct: mongoose.Types.ObjectId(requestingProduct), isExchanged: false }).select()
     },
     GetMostlyLikedProducts: async () => {
         let model = await ProductModel

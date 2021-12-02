@@ -6,6 +6,7 @@ import {
     ChangeOrderStatus,
     DeleteProduct,
     EditProduct,
+    ExchangeProducts,
     GetCategories,
     GetCities,
     GetConditions,
@@ -17,6 +18,9 @@ import {
     GetOrderById,
     GetProductById,
     GetProductsByCategory,
+    GetProductsToExchange,
+    GetRequestedExchanges,
+    GetRequestingExchanges,
     GetSellingProducts,
     LikeProduct,
     OrderProducts,
@@ -165,6 +169,50 @@ ProductRouter.patch(
         ]
     ],
     OrderProducts,
+)
+/**
+ * @swagger
+ * /Api/Product/ExchangeProducts:
+ *  patch: 
+ *      summary: Order all products in the cart
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Order is successfully placed
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      requestBody:
+ *          required: true
+ *          content: 
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          deliveryAddress:
+ *                              type: string
+ *                          requestedProduct:
+ *                              type: string
+ *                          requestingProduct:
+ *                              type: string
+ *                          isPaymentByHand:
+ *                              type: boolean
+ */
+ProductRouter.patch(
+    '/ExchangeProducts',
+    [
+        UserAuth,
+        [
+            check('isPaymentByHand', 'isPaymentByHand is required').not().isEmpty(),
+            check('deliveryAddress', 'deliveryAddress is required').not().isEmpty(),
+            check('requestingProduct', 'requestingProduct is required').not().isEmpty(),
+            check('requestedProduct', 'requestedProduct is required').not().isEmpty(),
+        ]
+    ],
+    ExchangeProducts,
 )
 /**
  * @swagger
@@ -358,6 +406,50 @@ ProductRouter.get(
 )
 /**
  * @swagger
+ * /Api/Product/GetRequestingExchanges:
+ *  get: 
+ *      summary: Get Requesting Exchanges 
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Requesting Exchanges are successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      - in: query
+ */
+ProductRouter.get(
+    '/GetRequestingExchanges',
+    UserAuth,
+    GetRequestingExchanges
+)
+/**
+ * @swagger
+ * /Api/Product/GetRequestedExchanges:
+ *  get: 
+ *      summary: Get Requested Exchanges 
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Requested Exchanges are successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      - in: query
+ */
+ProductRouter.get(
+    '/GetRequestedExchanges',
+    UserAuth,
+    GetRequestedExchanges
+)
+/**
+ * @swagger
  * /Api/Product/GetProductsByCategory:
  *  get: 
  *      summary: Get selling products 
@@ -500,6 +592,39 @@ ProductRouter.get(
     '/GetMyProducts',
     UserAuth,
     GetMyProducts
+)
+/**
+ * @swagger
+ * /Api/Product/GetProductsToExchange:
+ *  get: 
+ *      summary: Get My products 
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: My products are successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      - in: query
+ *        name: limit
+ *        schema:
+ *          type: integer
+ *      - in: query
+ *        name: skip
+ *        schema:
+ *          type: integer
+ *      - in: query
+ *        name: categoryId
+ *        schema:
+ *          type: integer
+ */
+ProductRouter.get(
+    '/GetProductsToExchange',
+    UserAuth,
+    GetProductsToExchange
 )
 /**
  * @swagger
