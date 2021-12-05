@@ -51,6 +51,19 @@ export const GetOrderById = async (req, res) => {
         return res.status(500).send(error.message)
     }
 }
+export const GetRecommendedProducts = async (req, res) => {
+    const { id, fcmToken } = req.user
+
+    try {
+        let products = await ProductRepository.GetRecommendedProducts(id)
+        if (!products)
+            return res.status(500).send('Internal Server Error while getting the order detail')
+        return res.send(products)
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
 export const SearchProductsByKeywords = async (req, res) => {
     const { skip, limit } = req.query
     const { keywords } = req.body
@@ -345,6 +358,42 @@ export const ChangeOrderStatus = async (req, res) => {
         if (!order)
             return res.status(500).send('Internal Server Error while changing status')
         return res.send(`Order is marked as ${status} successfully!`)
+    } catch (error) {
+        console.error(error.message)
+        return res.status(500).send(error.message)
+    }
+}
+export const MarkAsExchanged = async (req, res) => {
+    const { exchangeId } = req.body
+    const { id, fcmToken } = req.user
+    try {
+        let exchange = await ProductRepository.GetExchangeById(exchangeId)
+        if (!exchange)
+            return res.status(500).send({ data: 'Internal Server Error while getting exchange by id' })
+        const { requestedProduct, requestingProduct, isPaymentByHand } = exchange
+
+        if (!isPaymentByHand) {
+            let amountDifference = await ProductRepository.GetPriceDifference(requestingProduct, requestedProduct)
+            if (amountDifference > 0) {
+                let balance = await WalletRepository.GetBalance(id)
+                if (amountDifference > balance)
+                    return res.status(400).send({ data: "You have insufficient balance" })
+            } else {
+                let requesting = await ProductRepository.GetProductById(requestingProduct)
+                let requestingBalance = await WalletRepository.GetBalance(requesting.user)
+                if (Math.abs(amountDifference) > requestingBalance)
+                    return res.status(400).send({ data: "Requesting user has insufficient balance" })
+            }
+            let result = await WalletRepository.AddExchangeTransactions(amountDifference, requestedProduct, requestingProduct)
+            if (!result)
+                return res.status(500).send("Error while adding transaction and updating wallet")
+        }
+        await ProductRepository.ExpireAllExchanges(requestedProduct)
+        await ProductRepository.ExpireAllExchanges(requestingProduct)
+        let result = await ProductRepository.MarkAsExchanged(exchangeId)
+        if (!result)
+            return res.status(500).send({ data: 'Internal Server Error while marking as exchanged' })
+        return res.send({ data: `Marked as exchanged successfully!` })
     } catch (error) {
         console.error(error.message)
         return res.status(500).send(error.message)

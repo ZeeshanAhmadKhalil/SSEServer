@@ -93,6 +93,103 @@ export const WalletRepository = {
         await TransactionModel.insertMany(transactions) //todo: check if working
         return true
     },
+    AddExchangeTransactions: async (amountDifference, requestedProduct, requestingProduct) => {
+        let requested = await ProductModel.findById(requestedProduct).select()
+        let requesting = await ProductModel.findById(requestingProduct).select()
+        let amount
+        let transactions = []
+        if (amountDifference > 0) {
+            amount = amountDifference
+            //* Adding Transaction of requesting user
+            transactions.push(new TransactionModel({
+                upAmount: amount,
+                downAmount: 0,
+                performedOn: Date.now(),
+                transactionType: mongoose.Types.ObjectId("614f733793e00a99cca623bc"), //* Exchange Transaction Type
+                user: mongoose.Types.ObjectId(requesting.user),
+                exchangedProduct: mongoose.Types.ObjectId(requestingProduct),
+            }))
+
+            //* Adding Transaction of requested user
+            transactions.push(new TransactionModel({
+                upAmount: 0,
+                downAmount: amount,
+                performedOn: Date.now(),
+                transactionType: mongoose.Types.ObjectId("614f733793e00a99cca623bc"), //* Exchange Transaction Type
+                user: mongoose.Types.ObjectId(requested.user),
+                exchangedProduct: mongoose.Types.ObjectId(requestedProduct),
+            }))
+
+            //* Adding Balace in requesting user Wallet
+            var walletModelRequesting = await WalletModel.findOne({ user: requesting.user }).select()
+            if (!walletModelRequesting) {
+                walletModelRequesting = new WalletModel({
+                    balance: parseFloat(amount),
+                    user: mongoose.Types.ObjectId(requesting.user),
+                })
+            } else {
+                walletModelRequesting.balance = parseFloat(walletModelRequesting.balance) + parseFloat(amount)
+            }
+            await walletModelRequesting.save()
+
+            //* Deducing Balace from requested user Wallet
+            var walletModelRequested = await WalletModel.findOne({ user: requested.user }).select()
+            if (!walletModelRequested)
+                return false
+            walletModelRequested.balance = parseFloat(walletModelRequested.balance) - parseFloat(amount)
+            if (walletModelRequested.balance < 0)
+                return false
+            await walletModelRequested.save()
+            await TransactionModel.insertMany(transactions)
+            return true
+        } else if (amountDifference < 0) {
+            amount = Math.abs(amountDifference)
+            //* Adding Transaction of requesting user
+            transactions.push(new TransactionModel({
+                upAmount: 0,
+                downAmount: amount,
+                performedOn: Date.now(),
+                transactionType: mongoose.Types.ObjectId("614f733793e00a99cca623bc"), //* Exchange Transaction Type
+                user: mongoose.Types.ObjectId(requesting.user),
+                exchangedProduct: mongoose.Types.ObjectId(requestingProduct),
+            }))
+
+            //* Adding Transaction of requested user
+            transactions.push(new TransactionModel({
+                upAmount: amount,
+                downAmount: 0,
+                performedOn: Date.now(),
+                transactionType: mongoose.Types.ObjectId("614f733793e00a99cca623bc"), //* Exchange Transaction Type
+                user: mongoose.Types.ObjectId(requested.user),
+                exchangedProduct: mongoose.Types.ObjectId(requestedProduct),
+            }))
+
+            //* Adding Balace in requested user Wallet
+            var walletModelRequested = await WalletModel.findOne({ user: requested.user }).select()
+            if (!walletModelRequested) {
+                walletModelRequested = new WalletModel({
+                    balance: parseFloat(amount),
+                    user: mongoose.Types.ObjectId(requested.user),
+                })
+            } else {
+                walletModelRequested.balance = parseFloat(walletModelRequested.balance) + parseFloat(amount)
+            }
+            await walletModelRequested.save()
+
+            //* Deducing Balace from requesting user Wallet
+            var walletModelRequesting = await WalletModel.findOne({ user: requesting.user }).select()
+            if (!walletModelRequesting)
+                return false
+            walletModelRequesting.balance = parseFloat(walletModelRequesting.balance) - parseFloat(amount)
+            if (walletModelRequesting.balance < 0)
+                return false
+            await walletModelRequesting.save()
+            await TransactionModel.insertMany(transactions)
+            return true
+        } else {
+            return false
+        }
+    },
     GetBalance: async (id) => {
         var model = await WalletModel.findOne({ user: id }).select()
         if (model)

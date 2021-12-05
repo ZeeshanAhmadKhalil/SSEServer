@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import recombee from "recombee-api-client";
 import { CartModel } from "../Model/CartModel.js";
 import { CategoryModel } from "../Model/CategoryModel.js";
 import { CityModel } from "../Model/CityModel.js";
@@ -14,6 +15,7 @@ import { UserModel } from "../Model/UserModal.js";
 import { WalletModel } from "../Model/WalletModel.js";
 import { WishlistModel } from "../Model/WishlistModel.js";
 
+var rqs = recombee.requests;
 
 export const ProductRepository = { //todo: acending order by created on while fetching the products.
     AddProduct: async (productName, price, quantity, forExchange, description, categoryId, cityId, conditionId, images, id) => {
@@ -672,7 +674,14 @@ export const ProductRepository = { //todo: acending order by created on while fe
                     as: "requestedMedia",
                 }
             },
-            { $match: { "requestedProduct.user": mongoose.Types.ObjectId(id) } },
+            {
+                $match: {
+                    $and: [
+                        { "requestedProduct.user": mongoose.Types.ObjectId(id) },
+                        { isExchanged: false }
+                    ]
+                }
+            },
         ]).exec()
         // model = await WishlistModel.populate(model, { path: 'product', populate: { path: 'media' } })
         models = await ExchangeModel.populate(models, { path: 'product', populate: { path: 'media' } })
@@ -713,7 +722,15 @@ export const ProductRepository = { //todo: acending order by created on while fe
                     as: "requestedMedia",
                 }
             },
-            { $match: { "requestingProduct.user": mongoose.Types.ObjectId(id) } },
+            {
+                $match: {
+                    $and: [
+                        { "requestingProduct.user": mongoose.Types.ObjectId(id) },
+                        // { isExchanged: { $ne: null } }, //! created confusion
+                        { isExchanged: false }
+                    ]
+                }
+            },
         ]).exec()
         return models
     },
@@ -843,6 +860,44 @@ export const ProductRepository = { //todo: acending order by created on while fe
         let order = await orderModel.save()
         return order;
     },
+    GetExchangeById: async (exchangeId) => {
+        return await ExchangeModel.findById(exchangeId).select()
+    },
+    MarkAsExchanged: async (exchangeId) => {
+        let exchange = await ExchangeModel.findById(exchangeId).select()
+        const { requestedProduct, requestingProduct } = exchange
+        let requested = await ProductModel.findById(requestedProduct).select()
+        let requesting = await ProductModel.findById(requestingProduct).select()
+        let tempUser = requested.user
+        requested.user = requesting.user
+        requesting.user = tempUser
+        exchange.isExchanged = true
+        await requested.save()
+        await requesting.save()
+        await exchange.save()
+        return true
+    },
+    ExpireAllExchanges: async (productId) => {
+        let exchanges = await ExchangeModel.updateMany(
+            {
+                $and: [
+                    {
+                        $or: [
+                            { requestingProduct: productId },
+                            { requestedProduct: productId },
+                        ]
+                    },
+                    {
+                        $or: [
+                            { isExchanged: false },
+                        ]
+                    },
+                ]
+            },
+            { isExchanged: null }
+        ).exec()
+        return true
+    },
     GetConditions: async () => {
         return await ConditionModel.find({}).select()
     },
@@ -851,5 +906,47 @@ export const ProductRepository = { //todo: acending order by created on while fe
     },
     GetCities: async () => {
         return await CityModel.find({}).select()
+    },
+    GetRecommendedProducts: async (id) => {
+        // let productIds = await ProductModel.
+
+        var client = new recombee.ApiClient('sse-dev', 'GIwHFvbXw24eWtdjIgrY4p6HgNfZMJLa1oCTdVGESyP9Gi16mf3A8FYOin6xjgtE');
+
+        // Prepare some userIDs and itemIDs
+        const NUM = 100;
+        var userIds = Array.apply(0, Array(NUM)).map((_, i) => {
+            return `user-${i}`;
+        });
+
+        var itemIds = Array.apply(0, Array(NUM)).map((_, i) => {
+            return `item-${i}`;
+        });
+
+        // Generate some random purchases of items by users
+        const PROBABILITY_PURCHASED = 0.1;
+        var purchases = [];
+        userIds.forEach((userId) => {
+            var purchased = itemIds.filter(() => Math.random() < PROBABILITY_PURCHASED);
+            purchased.forEach((itemId) => {
+
+                purchases.push(new rqs.AddPurchase(userId, itemId, { 'cascadeCreate': true }))
+
+            });
+        });
+
+        // Send the data to Recombee, use Batch for faster processing of larger data
+        let result = await client.send(new rqs.Batch(purchases))
+            .then(() => {
+                //Get 5 recommended items for user 'user-25'
+                return client.send(new rqs.RecommendItemsToUser('user-25', 5));
+            })
+            .then((response) => {
+                console.log("Recommended items for user-25: %j", response.recomms);
+
+                // User scrolled down - get next 3 recommended items
+                return client.send(new rqs.RecommendNextItems(response.recommId, 3));
+            })
+
+        return true
     },
 }

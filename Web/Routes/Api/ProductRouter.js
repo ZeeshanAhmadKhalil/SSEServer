@@ -19,10 +19,12 @@ import {
     GetProductById,
     GetProductsByCategory,
     GetProductsToExchange,
+    GetRecommendedProducts,
     GetRequestedExchanges,
     GetRequestingExchanges,
     GetSellingProducts,
     LikeProduct,
+    MarkAsExchanged,
     OrderProducts,
     SearchProducts,
     SearchProductsByKeywords
@@ -216,6 +218,41 @@ ProductRouter.patch(
 )
 /**
  * @swagger
+ * /Api/Product/MarkAsExchanged:
+ *  patch: 
+ *      summary: Exchange the products
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Exchanged successfully
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ *      requestBody:
+ *          required: true
+ *          content: 
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          exchangeId:
+ *                              type: string
+ */
+ProductRouter.patch(
+    '/MarkAsExchanged',
+    [
+        UserAuth,
+        [
+            check('exchangeId', 'exchangeId is required').not().isEmpty(),
+        ]
+    ],
+    MarkAsExchanged
+)
+/**
+ * @swagger
  * /Api/Product/ChangeOrderStatus:
  *  patch: 
  *      summary: Change Deposit Request Status
@@ -301,6 +338,27 @@ ProductRouter.get(
     '/GetOrderById',
     UserAuth,
     GetOrderById
+)
+/**
+ * @swagger
+ * /Api/Product/GetRecommendedProducts:
+ *  get: 
+ *      summary: Get Recommended products
+ *      tags:
+ *      - Product
+ *      responses:
+ *          '200':
+ *              description: Recommended products are successfully fetched
+ *      parameters:
+ *      - in: header
+ *        name: x-auth-token
+ *        schema:
+ *          type: string
+ */
+ProductRouter.get(
+    '/GetRecommendedProducts',
+    UserAuth,
+    GetRecommendedProducts
 )
 /**
  * @swagger
