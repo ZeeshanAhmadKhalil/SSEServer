@@ -908,45 +908,51 @@ export const ProductRepository = { //todo: acending order by created on while fe
         return await CityModel.find({}).select()
     },
     GetRecommendedProducts: async (id) => {
-        // let productIds = await ProductModel.
+        // let items = await ProductModel.find({}).select()
+        // let itemIds = items.map(obj => obj._id.toString())
+        // let users = await UserModel.find({}).select()
+        // let userIds = users.map(obj => obj._id.toString())
 
         var client = new recombee.ApiClient('sse-dev', 'GIwHFvbXw24eWtdjIgrY4p6HgNfZMJLa1oCTdVGESyP9Gi16mf3A8FYOin6xjgtE');
 
-        // Prepare some userIDs and itemIDs
-        const NUM = 100;
-        var userIds = Array.apply(0, Array(NUM)).map((_, i) => {
-            return `user-${i}`;
-        });
+        var likedProducts = [];
 
-        var itemIds = Array.apply(0, Array(NUM)).map((_, i) => {
-            return `item-${i}`;
-        });
+        let wishlist = await WishlistModel.find({}).select()
+        wishlist.map(obj => likedProducts.push(new rqs.AddPurchase(obj.user.toString(), obj.product.toString(), { 'cascadeCreate': true })))
 
-        // Generate some random purchases of items by users
-        const PROBABILITY_PURCHASED = 0.1;
-        var purchases = [];
-        userIds.forEach((userId) => {
-            var purchased = itemIds.filter(() => Math.random() < PROBABILITY_PURCHASED);
-            purchased.forEach((itemId) => {
+        // for (const userId of userIds) {
+        //     var purchased = []
+        //     for (const itemId of itemIds) {
+        //         let counts = await WishlistModel.countDocuments({ user: mongoose.Types.ObjectId(userId), product: mongoose.Types.ObjectId(itemId) })
+        //         if (counts > 0)
+        //             purchased.push(itemId)
+        //     }
+        //     purchased.forEach((itemId) => {
+        //         likedProducts.push(new rqs.AddPurchase(userId, itemId, { 'cascadeCreate': true }))
+        //     });
+        // }
 
-                purchases.push(new rqs.AddPurchase(userId, itemId, { 'cascadeCreate': true }))
-
-            });
-        });
+        // const PROBABILITY_PURCHASED = 0.1;
+        // userIds.forEach((userId) => {
+        //     var purchased = itemIds.filter(() => Math.random() < PROBABILITY_PURCHASED);
+        //     purchased.forEach((itemId) => {
+        //         likedProducts.push(new rqs.AddPurchase(userId, itemId, { 'cascadeCreate': true }))
+        //     });
+        // });
 
         // Send the data to Recombee, use Batch for faster processing of larger data
-        let result = await client.send(new rqs.Batch(purchases))
+        let result = await client.send(new rqs.Batch(likedProducts))
             .then(() => {
-                //Get 5 recommended items for user 'user-25'
-                return client.send(new rqs.RecommendItemsToUser('user-25', 5));
+                //Get 10 recommended items for user with id
+                return client.send(new rqs.RecommendItemsToUser(id, 10));
             })
-            .then((response) => {
-                console.log("Recommended items for user-25: %j", response.recomms);
+        let productObjectIds = result.recomms.map(obj => mongoose.Types.ObjectId(obj.id))
+        let products = await ProductModel.find({
+            _id: {
+                $in: productObjectIds
+            }
+        }).populate('media').select()
 
-                // User scrolled down - get next 3 recommended items
-                return client.send(new rqs.RecommendNextItems(response.recommId, 3));
-            })
-
-        return true
+        return products
     },
 }
