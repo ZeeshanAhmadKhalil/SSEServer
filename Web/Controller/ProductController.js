@@ -350,14 +350,14 @@ export const ChangeOrderStatus = async (req, res) => {
     try {
         let result = await ProductRepository.CheckIfOrderBelongsToUser(id, orderId)
         if (!result)
-            return res.status(400).send('Order not found in your orders!')
+            return res.status(400).send({ data: 'Order not found in your orders!' })
         let depositRequestStatus = await ProductRepository.GeOrderStatus(orderId)
         if (depositRequestStatus != "Delivering")
-            return res.status(400).send('You already changed the status!')
+            return res.status(400).send({ data: 'You already changed the status!' })
         let order = await ProductRepository.ChangeOrderStatus(orderId, status)
         if (!order)
-            return res.status(500).send('Internal Server Error while changing status')
-        return res.send(`Order is marked as ${status} successfully!`)
+            return res.status(500).send({ data: 'Internal Server Error while changing status' })
+        return res.send({ data: `Order is marked as ${status} successfully!` })
     } catch (error) {
         console.error(error.message)
         return res.status(500).send(error.message)
