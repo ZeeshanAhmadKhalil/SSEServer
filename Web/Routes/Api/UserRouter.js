@@ -86,7 +86,7 @@ UserRouter.post(
     '/Register',
     [
         check('fullName', 'Full Name is required').not().isEmpty(),
-        check('phone', 'Phone is required').not().isEmpty(),
+        check('phone', 'Phone number should be 11 characters').isLength({ min: 11, max: 11 }),
         check('location', 'Location is required').not().isEmpty(),
         check('fcmToken', 'FCM token is required').not().isEmpty(),
         check('email', 'Enter a valid email').isEmail(),

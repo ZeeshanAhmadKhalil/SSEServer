@@ -43,7 +43,7 @@ WalletRouter.post(
         UserAuth,
         [
             check('bankName', 'Bank name is required').not().isEmpty(),
-            check('accountNumber', 'Account number is required').not().isEmpty(),
+            check('accountNumber', 'Account number is required').not().isLength({ min: 16, max: 16 }),
             check('accountTitle', 'Account title is required').not().isEmpty(),
             check('amount', 'Amount should be a number').isNumeric(),
         ]
