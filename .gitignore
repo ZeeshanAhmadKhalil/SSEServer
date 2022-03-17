@@ -1,1 +1,3 @@
 node_modules/
+Config/default.json
+Config/SSEContext.js
