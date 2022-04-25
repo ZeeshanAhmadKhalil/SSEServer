@@ -34,7 +34,7 @@ const options = {
                 url: "http://localhost:6900"
             },
             {
-                url: "http://192.168.43.249:6900"
+                url: "http://192.168.10.10:6900"
             },
             {
                 url: "https://sseserver1.herokuapp.com"

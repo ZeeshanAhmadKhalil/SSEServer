@@ -22,12 +22,15 @@ export const AdminRepository = {
         let depositRequestStatus = await DepositRequestStatusModel.findOne({ depositRequestStatus: status }).select()
         depositRequestModel.depositRequestStatus = mongoose.Types.ObjectId(depositRequestStatus._id)
         if (status == "Accepted") {
+
+            let transactionTypeId = await TransactionModel.findOne({ transactionType: "Deposit" }).select()
+
             //* Add transaction
             let transactionModel = new TransactionModel({
                 upAmount: depositRequestModel.amount,
                 downAmount: 0,
                 performedOn: Date.now(),
-                transactionType: mongoose.Types.ObjectId("614f733793e00a99cca623bb"), //* Deposit Transaction Type
+                transactionType: mongoose.Types.ObjectId(transactionTypeId), //* Deposit Transaction Type
                 user: mongoose.Types.ObjectId(depositRequestModel.user),
             })
             await transactionModel.save()
