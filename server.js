@@ -31,6 +31,9 @@ const options = {
         },
         servers: [
             {
+                url: "https://online-shopping-server.herokuapp.com"
+            },
+            {
                 url: "http://localhost:6900"
             },
             {
