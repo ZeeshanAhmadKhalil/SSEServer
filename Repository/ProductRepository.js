@@ -18,7 +18,7 @@ import { WishlistModel } from "../Model/WishlistModel.js";
 var rqs = recombee.requests;
 
 export const ProductRepository = { //todo: acending order by created on while fetching the products.
-    AddProduct: async (productName, price, quantity, forExchange, description, categoryId, cityId, conditionId, images, id) => {
+    AddProduct: async (productName, price, quantity, forExchange, description, categoryId, cityId, conditionId, images, id, longitude, latitude) => {
         let condition = await ConditionModel.findOne({ _id: conditionId }).select()
         if (!condition)
             return null;
@@ -47,6 +47,8 @@ export const ProductRepository = { //todo: acending order by created on while fe
             condition,
             user,
             media,
+            longitude,
+            latitude,
             createdOn: Date.now(),
         })
         let product = await productModel.save()
@@ -815,6 +817,7 @@ export const ProductRepository = { //todo: acending order by created on while fe
             return false
 
         let orderSatusId = await OrderStatusModel.findOne({ orderStatus: 'Delivering' }).select()
+        orderSatusId = orderSatusId._doc._id
 
         let orderModel = new OrderModel({
             deliveryAddress,
@@ -924,6 +927,9 @@ export const ProductRepository = { //todo: acending order by created on while fe
             .then(() => {
                 //Get 10 recommended items for user with id
                 return client.send(new rqs.RecommendItemsToUser(id, 10));
+            }).catch((e) => {
+                console.error("error", e)
+                return { recomms: [] }
             })
         let productObjectIds = result.recomms.map(obj => mongoose.Types.ObjectId(obj.id))
         let products = await ProductModel.find({

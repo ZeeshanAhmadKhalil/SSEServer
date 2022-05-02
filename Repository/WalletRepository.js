@@ -6,10 +6,12 @@ import { CartModel } from "../Model/CartModel.js";
 import { ProductModel } from "../Model/ProductModel.js";
 import { TransactionModel } from "../Model/TransactionModel.js";
 import { TransactionTypeModel } from "../Model/TransactionTypeModel.js";
+import { AdminRepository } from "./AdminRepository.js";
 
 export const WalletRepository = {
     DepositRequest: async (bankName, accountNumber, accountTitle, amount, id) => {
         let depositRequestStatusId = await DepositRequestStatusModel.findOne({ depositRequestStatus: "Pending" }).select()
+        depositRequestStatusId = depositRequestStatusId._doc._id
         let depositRequestModel = new DepositRequestModel({
             bankName,
             accountNumber,
@@ -17,9 +19,12 @@ export const WalletRepository = {
             amount,
             depositRequestStatus: mongoose.Types.ObjectId(depositRequestStatusId), // * Pending status
             user: mongoose.Types.ObjectId(id),
-            createdOn: Date.now()
+            createdOn: Date.now(),
         })
         let depositRequest = await depositRequestModel.save()
+
+        AdminRepository.ChangeDepositRequestStatus(depositRequest._id, "Accepted") //todo: remove this to include admin
+
         return depositRequest
     },
     GetDepositRequests: async (skip, limit, id) => {
@@ -52,6 +57,8 @@ export const WalletRepository = {
 
             //* Adding Transaction of seller
             transactionTypeId = await TransactionTypeModel.findOne({ transactionType: "Sell" }).select()
+            transactionTypeId = transactionTypeId._doc._id
+
             transactions.push(new TransactionModel({
                 upAmount: amount,
                 downAmount: 0,
@@ -64,6 +71,8 @@ export const WalletRepository = {
 
             //* Adding Transaction of buyer
             transactionTypeId = await TransactionTypeModel.findOne({ transactionType: "Buy" }).select()
+            transactionTypeId = transactionTypeId._doc._id
+
             transactions.push(new TransactionModel({
                 upAmount: 0,
                 downAmount: amount,
@@ -107,6 +116,8 @@ export const WalletRepository = {
             amount = amountDifference
             //* Adding Transaction of requesting user
             let transactionTypeId = await TransactionTypeModel.findOne({ transactionType: "Exchange" }).select()
+            transactionTypeId = transactionTypeId._doc._id
+
             transactions.push(new TransactionModel({
                 upAmount: amount,
                 downAmount: 0,
@@ -152,6 +163,8 @@ export const WalletRepository = {
             amount = Math.abs(amountDifference)
             //* Adding Transaction of requesting user
             let transactionTypeId = await TransactionTypeModel.findOne({ transactionType: "Exchange" }).select()
+            transactionTypeId = transactionTypeId._doc._id
+
             transactions.push(new TransactionModel({
                 upAmount: 0,
                 downAmount: amount,
