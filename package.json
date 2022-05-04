@@ -1,7 +1,7 @@
 {
-  "name": "sseserver",
+  "name": "onlineshoppingserver",
   "version": "1.0.0",
-  "description": "This is server of SSE project",
+  "description": "This is server of OnlineShopping project",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -9,7 +9,7 @@
     "server": "nodemon server",
     "seed": "node ./Config/seed.js"
   },
-  "author": "Muhammad Faizan",
+  "author": "Mubeen Khan",
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",

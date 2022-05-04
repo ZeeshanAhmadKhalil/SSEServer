@@ -25,9 +25,9 @@ const options = {
     definition: {
         openapi: "3.0.0",
         info: {
-            title: "SSE Server",
+            title: "OnlineShopping Server",
             version: "0.3.0",
-            description: "Search, Scan & Exchange"
+            description: "APIs for online shoping"
         },
         servers: [
             {
