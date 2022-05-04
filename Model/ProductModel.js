@@ -20,13 +20,21 @@ const ProductSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    longitude: {
+        type: Number,
+        default: null,
+    },
+    latitude: {
+        type: Number,
+        default: null,
+    },
     isDeleted: {
         type: Boolean,
         default: false
     },
     createdOn: {
         type: Date,
-        default: Date.now()
+        default: Date.now() //! captures the date when server starts not when API is called
     },
     category: {
         type: mongoose.Types.ObjectId,

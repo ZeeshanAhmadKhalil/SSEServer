@@ -31,10 +31,13 @@ const options = {
         },
         servers: [
             {
+                url: "https://online-shopping-server.herokuapp.com"
+            },
+            {
                 url: "http://localhost:6900"
             },
             {
-                url: "http://192.168.43.249:6900"
+                url: "http://192.168.10.6:6900"
             },
             {
                 url: "https://sseserver1.herokuapp.com"

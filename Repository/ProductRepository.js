@@ -18,7 +18,7 @@ import { WishlistModel } from "../Model/WishlistModel.js";
 var rqs = recombee.requests;
 
 export const ProductRepository = { //todo: acending order by created on while fetching the products.
-    AddProduct: async (productName, price, quantity, forExchange, description, categoryId, cityId, conditionId, images, id) => {
+    AddProduct: async (productName, price, quantity, forExchange, description, categoryId, cityId, conditionId, images, id, longitude, latitude) => {
         let condition = await ConditionModel.findOne({ _id: conditionId }).select()
         if (!condition)
             return null;
@@ -47,6 +47,8 @@ export const ProductRepository = { //todo: acending order by created on while fe
             condition,
             user,
             media,
+            longitude,
+            latitude,
             createdOn: Date.now(),
         })
         let product = await productModel.save()
@@ -813,11 +815,15 @@ export const ProductRepository = { //todo: acending order by created on while fe
         let cartModel = await CartModel.find({ user: mongoose.Types.ObjectId(id) }).select()
         if (cartModel.length == 0)
             return false
+
+        let orderSatusId = await OrderStatusModel.findOne({ orderStatus: 'Delivering' }).select()
+        orderSatusId = orderSatusId._doc._id
+
         let orderModel = new OrderModel({
             deliveryAddress,
             isPaymentByHand,
             createdOn: Date.now(),
-            orderStatus: mongoose.Types.ObjectId("614f733793e00a99cca623b1"), //* Delivering order status
+            orderStatus: mongoose.Types.ObjectId(orderSatusId), //* Delivering order status
             user: mongoose.Types.ObjectId(id),
         })
         let order = await orderModel.save()
@@ -908,10 +914,6 @@ export const ProductRepository = { //todo: acending order by created on while fe
         return await CityModel.find({}).select()
     },
     GetRecommendedProducts: async (id) => {
-        // let items = await ProductModel.find({}).select()
-        // let itemIds = items.map(obj => obj._id.toString())
-        // let users = await UserModel.find({}).select()
-        // let userIds = users.map(obj => obj._id.toString())
 
         var client = new recombee.ApiClient('sse-dev', 'GIwHFvbXw24eWtdjIgrY4p6HgNfZMJLa1oCTdVGESyP9Gi16mf3A8FYOin6xjgtE');
 
@@ -920,31 +922,14 @@ export const ProductRepository = { //todo: acending order by created on while fe
         let wishlist = await WishlistModel.find({}).select()
         wishlist.map(obj => likedProducts.push(new rqs.AddPurchase(obj.user.toString(), obj.product.toString(), { 'cascadeCreate': true })))
 
-        // for (const userId of userIds) {
-        //     var purchased = []
-        //     for (const itemId of itemIds) {
-        //         let counts = await WishlistModel.countDocuments({ user: mongoose.Types.ObjectId(userId), product: mongoose.Types.ObjectId(itemId) })
-        //         if (counts > 0)
-        //             purchased.push(itemId)
-        //     }
-        //     purchased.forEach((itemId) => {
-        //         likedProducts.push(new rqs.AddPurchase(userId, itemId, { 'cascadeCreate': true }))
-        //     });
-        // }
-
-        // const PROBABILITY_PURCHASED = 0.1;
-        // userIds.forEach((userId) => {
-        //     var purchased = itemIds.filter(() => Math.random() < PROBABILITY_PURCHASED);
-        //     purchased.forEach((itemId) => {
-        //         likedProducts.push(new rqs.AddPurchase(userId, itemId, { 'cascadeCreate': true }))
-        //     });
-        // });
-
         // Send the data to Recombee, use Batch for faster processing of larger data
         let result = await client.send(new rqs.Batch(likedProducts))
             .then(() => {
                 //Get 10 recommended items for user with id
                 return client.send(new rqs.RecommendItemsToUser(id, 10));
+            }).catch((e) => {
+                console.error("error", e)
+                return { recomms: [] }
             })
         let productObjectIds = result.recomms.map(obj => mongoose.Types.ObjectId(obj.id))
         let products = await ProductModel.find({

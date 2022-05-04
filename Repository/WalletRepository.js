@@ -6,19 +6,25 @@ import { CartModel } from "../Model/CartModel.js";
 import { ProductModel } from "../Model/ProductModel.js";
 import { TransactionModel } from "../Model/TransactionModel.js";
 import { TransactionTypeModel } from "../Model/TransactionTypeModel.js";
+import { AdminRepository } from "./AdminRepository.js";
 
 export const WalletRepository = {
     DepositRequest: async (bankName, accountNumber, accountTitle, amount, id) => {
+        let depositRequestStatusId = await DepositRequestStatusModel.findOne({ depositRequestStatus: "Pending" }).select()
+        depositRequestStatusId = depositRequestStatusId._doc._id
         let depositRequestModel = new DepositRequestModel({
             bankName,
             accountNumber,
             accountTitle,
             amount,
-            depositRequestStatus: mongoose.Types.ObjectId("614f733793e00a99cca623aa"), // * pending status
+            depositRequestStatus: mongoose.Types.ObjectId(depositRequestStatusId), // * Pending status
             user: mongoose.Types.ObjectId(id),
-            createdOn: Date.now()
+            createdOn: Date.now(),
         })
         let depositRequest = await depositRequestModel.save()
+
+        AdminRepository.ChangeDepositRequestStatus(depositRequest._id, "Accepted") //todo: remove this to include admin
+
         return depositRequest
     },
     GetDepositRequests: async (skip, limit, id) => {
@@ -47,23 +53,31 @@ export const WalletRepository = {
             var productModel = await ProductModel.findById(element.product).select()
             var amount = parseInt(productModel.price * element.quantity)
 
+            let transactionTypeId
+
             //* Adding Transaction of seller
+            transactionTypeId = await TransactionTypeModel.findOne({ transactionType: "Sell" }).select()
+            transactionTypeId = transactionTypeId._doc._id
+
             transactions.push(new TransactionModel({
                 upAmount: amount,
                 downAmount: 0,
                 performedOn: Date.now(),
-                transactionType: mongoose.Types.ObjectId("614f733793e00a99cca623be"), //* Sell Transaction Type
+                transactionType: mongoose.Types.ObjectId(transactionTypeId), //* Sell Transaction Type
                 user: mongoose.Types.ObjectId(productModel.user),
                 soldProduct: mongoose.Types.ObjectId(productModel.id),
                 quantity: element.quantity,
             }))
 
             //* Adding Transaction of buyer
+            transactionTypeId = await TransactionTypeModel.findOne({ transactionType: "Buy" }).select()
+            transactionTypeId = transactionTypeId._doc._id
+
             transactions.push(new TransactionModel({
                 upAmount: 0,
                 downAmount: amount,
                 performedOn: Date.now(),
-                transactionType: mongoose.Types.ObjectId("614f733793e00a99cca623bd"), //* Buy Transaction Type
+                transactionType: mongoose.Types.ObjectId(transactionTypeId), //* Buy Transaction Type
                 user: mongoose.Types.ObjectId(element.user),
                 boughtProduct: mongoose.Types.ObjectId(productModel.id),
                 quantity: element.quantity,
@@ -101,11 +115,14 @@ export const WalletRepository = {
         if (amountDifference > 0) {
             amount = amountDifference
             //* Adding Transaction of requesting user
+            let transactionTypeId = await TransactionTypeModel.findOne({ transactionType: "Exchange" }).select()
+            transactionTypeId = transactionTypeId._doc._id
+
             transactions.push(new TransactionModel({
                 upAmount: amount,
                 downAmount: 0,
                 performedOn: Date.now(),
-                transactionType: mongoose.Types.ObjectId("614f733793e00a99cca623bc"), //* Exchange Transaction Type
+                transactionType: mongoose.Types.ObjectId(transactionTypeId), //* Exchange Transaction Type
                 user: mongoose.Types.ObjectId(requesting.user),
                 exchangedProduct: mongoose.Types.ObjectId(requestingProduct),
             }))
@@ -115,7 +132,7 @@ export const WalletRepository = {
                 upAmount: 0,
                 downAmount: amount,
                 performedOn: Date.now(),
-                transactionType: mongoose.Types.ObjectId("614f733793e00a99cca623bc"), //* Exchange Transaction Type
+                transactionType: mongoose.Types.ObjectId(transactionTypeId), //* Exchange Transaction Type
                 user: mongoose.Types.ObjectId(requested.user),
                 exchangedProduct: mongoose.Types.ObjectId(requestedProduct),
             }))
@@ -145,11 +162,14 @@ export const WalletRepository = {
         } else if (amountDifference < 0) {
             amount = Math.abs(amountDifference)
             //* Adding Transaction of requesting user
+            let transactionTypeId = await TransactionTypeModel.findOne({ transactionType: "Exchange" }).select()
+            transactionTypeId = transactionTypeId._doc._id
+
             transactions.push(new TransactionModel({
                 upAmount: 0,
                 downAmount: amount,
                 performedOn: Date.now(),
-                transactionType: mongoose.Types.ObjectId("614f733793e00a99cca623bc"), //* Exchange Transaction Type
+                transactionType: mongoose.Types.ObjectId(transactionTypeId), //* Exchange Transaction Type
                 user: mongoose.Types.ObjectId(requesting.user),
                 exchangedProduct: mongoose.Types.ObjectId(requestingProduct),
             }))
@@ -159,7 +179,7 @@ export const WalletRepository = {
                 upAmount: amount,
                 downAmount: 0,
                 performedOn: Date.now(),
-                transactionType: mongoose.Types.ObjectId("614f733793e00a99cca623bc"), //* Exchange Transaction Type
+                transactionType: mongoose.Types.ObjectId(transactionTypeId), //* Exchange Transaction Type
                 user: mongoose.Types.ObjectId(requested.user),
                 exchangedProduct: mongoose.Types.ObjectId(requestedProduct),
             }))

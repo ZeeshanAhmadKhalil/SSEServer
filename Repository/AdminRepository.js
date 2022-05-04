@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { DepositRequestModel } from "../Model/DepositRequestModel.js";
 import { DepositRequestStatusModel } from "../Model/DepositRequestStatusModel.js";
 import { TransactionModel } from "../Model/TransactionModel.js";
+import { TransactionTypeModel } from "../Model/TransactionTypeModel.js";
 import { WalletModel } from "../Model/WalletModel.js";
 
 export const AdminRepository = {
@@ -22,12 +23,16 @@ export const AdminRepository = {
         let depositRequestStatus = await DepositRequestStatusModel.findOne({ depositRequestStatus: status }).select()
         depositRequestModel.depositRequestStatus = mongoose.Types.ObjectId(depositRequestStatus._id)
         if (status == "Accepted") {
+
+            let transactionTypeId = await TransactionTypeModel.findOne({ transactionType: "Deposit" }).select()
+            transactionTypeId = transactionTypeId._doc._id
+
             //* Add transaction
             let transactionModel = new TransactionModel({
                 upAmount: depositRequestModel.amount,
                 downAmount: 0,
                 performedOn: Date.now(),
-                transactionType: mongoose.Types.ObjectId("614f733793e00a99cca623bb"), //* Deposit Transaction Type
+                transactionType: mongoose.Types.ObjectId(transactionTypeId), //* Deposit Transaction Type
                 user: mongoose.Types.ObjectId(depositRequestModel.user),
             })
             await transactionModel.save()

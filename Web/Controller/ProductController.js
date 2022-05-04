@@ -8,11 +8,36 @@ export const AddProduct = async (req, res) => {
     if (!errors.isEmpty())
         return res.status(400).json({ errors: errors.array() })
 
-    const { productName, price, quantity, forExchange, description, categoryId, cityId, conditionId, images } = req.body
-    const { id, fcmToken } = req.user
+    const {
+        productName,
+        price,
+        quantity,
+        forExchange,
+        description,
+        categoryId,
+        cityId,
+        conditionId,
+        images,
+        longitude,
+        latitude,
+    } = req.body || {}
+    const { id, fcmToken } = req.user || {}
 
     try {
-        let product = await ProductRepository.AddProduct(productName, price, quantity, forExchange, description, categoryId, cityId, conditionId, images, id)
+        let product = await ProductRepository.AddProduct(
+            productName,
+            price,
+            quantity,
+            forExchange,
+            description,
+            categoryId,
+            cityId,
+            conditionId,
+            images,
+            id,
+            longitude,
+            latitude,
+        )
         if (!product)
             return res.status(500).send('Internal Server Error while adding the product')
         return res.send(product)
