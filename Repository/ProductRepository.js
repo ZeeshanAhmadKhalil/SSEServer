@@ -3,16 +3,14 @@ import recombee from "recombee-api-client";
 import { CartModel } from "../Model/CartModel.js";
 import { CategoryModel } from "../Model/CategoryModel.js";
 import { CityModel } from "../Model/CityModel.js";
-import { ConditionModel } from "../Model/ConditionModel.js"
+import { ConditionModel } from "../Model/ConditionModel.js";
 import { ExchangeModel } from "../Model/ExchangeModel,.js";
 import { MediaModel } from "../Model/MediaModel.js";
 import { OrderModel } from "../Model/OrderModel.js";
 import { OrderProductModel } from "../Model/OrderProductModel.js";
 import { OrderStatusModel } from "../Model/OrderStatusModel.js";
 import { ProductModel } from "../Model/ProductModel.js";
-import { TransactionModel } from "../Model/TransactionModel.js";
 import { UserModel } from "../Model/UserModal.js";
-import { WalletModel } from "../Model/WalletModel.js";
 import { WishlistModel } from "../Model/WishlistModel.js";
 
 var rqs = recombee.requests;
